@@ -1,28 +1,27 @@
 
-#ifndef PESSOA_H
-#define PESSOA_H
+#include <stdio.h>
+#include "pessoa.h"
 
-//definir a estrutura pessoa
-typedef struct pessoa { 
-    int codigo;
-    char nome[100];
-    char fone[20];
-    char data_nascimento[11];
-    char endereco[150];
-//armazenei os dados
+int main() {
+    Pessoa *listaPessoas = NULL;
 
-    struct pessoa *ant;
-    struct pessoa *prox;
-//lista duplamente encadeada
-} Pessoa;
+    inserirPessoa(&listaPessoas, 1, "Joao",
+                  "859995566", "04/10/2002",
+                  "Rua A");
 
-// Funcoes da lista de pessoas
-Pessoa *buscarPessoa(Pessoa *inicio, int codigo);
-int inserirPessoa(Pessoa **inicio, int codigo,
-                  const char *nome, const char *fone,
-                  const char *data, const char *endereco);
-void listarPessoas(Pessoa *inicio);
-void liberarPessoas(Pessoa **inicio);
-//digo quais funcoes vao ser usadas
-#endif
+    inserirPessoa(&listaPessoas, 2, "Maria",
+                  "859996677", "10/05/2001",
+                  "Rua B");
+
+    inserirPessoa(&listaPessoas, 1, "Jose",
+                  "859997788", "15/08/2000",
+                  "Rua C");
+
+    printf("\n--- LISTA DE PESSOAS ---\n");
+    listarPessoas(listaPessoas);
+
+    liberarPessoas(&listaPessoas);
+
+    return 0;
+}
 
