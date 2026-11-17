@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "pessoa.h"
+#include "tipo_pet.h"
 
 int main() {
 
@@ -30,5 +31,26 @@ int main() {
 
     liberarPessoas(&listaPessoas);
 
+    TipoPet *listaTiposPet = NULL;
+
+    inserirTipoPet(&listaTiposPet, 1, "Cachorro");
+    inserirTipoPet(&listaTiposPet, 2, "Gato");
+    inserirTipoPet(&listaTiposPet, 3, "Coelho");
+
+    printf("\n--- TIPOS DE PET CADASTRADOS ---\n");
+    listarTiposPet(listaTiposPet);
+
+    atualizarTipoPet(listaTiposPet, 1, "Cao");
+
+    printf("\n--- TIPOS APOS ATUALIZACAO ---\n");
+    listarTiposPet(listaTiposPet);
+
+    removerTipoPet(&listaTiposPet, 2);
+
+    printf("\n--- TIPOS APOS REMOCAO ---\n");
+    listarTiposPet(listaTiposPet);
+
+    liberarTiposPet(&listaTiposPet);
+    
     return 0;
 }
