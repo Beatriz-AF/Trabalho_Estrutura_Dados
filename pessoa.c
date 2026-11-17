@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pessoa.h"
+//implementacao das funcoes que manipulam a lista de pessoas
 
 Pessoa *buscarPessoa(Pessoa *inicio, int codigo) {
     Pessoa *aux = inicio;
@@ -91,4 +92,66 @@ void liberarPessoas(Pessoa **inicio) {
     }
 
     *inicio = NULL;
+}
+
+int atualizarPessoa(Pessoa *inicio, int codigo,
+                    const char *nome, const char *fone,
+                    const char *data, const char *endereco) {
+
+    Pessoa *aux = buscarPessoa(inicio, codigo);
+
+    if (aux == NULL) {
+        printf("Erro: pessoa nao encontrada!\n");
+        return 0;
+    }
+
+    if (nome != NULL && nome[0] == '\0') {
+        printf("Erro: nome invalido!\n");
+        return 0;
+    }
+
+    if (data != NULL && data[0] == '\0') {
+        printf("Erro: data invalida!\n");
+        return 0;
+    }
+
+    if (nome != NULL)
+        snprintf(aux->nome, sizeof(aux->nome), "%s", nome);
+
+    if (fone != NULL)
+        snprintf(aux->fone, sizeof(aux->fone), "%s", fone);
+
+    if (data != NULL)
+        snprintf(aux->data_nascimento,
+                 sizeof(aux->data_nascimento), "%s", data);
+
+    if (endereco != NULL)
+        snprintf(aux->endereco,
+                 sizeof(aux->endereco), "%s", endereco);
+
+    return 1;
+}
+
+int removerPessoa(Pessoa **inicio, int codigo) {
+
+    Pessoa *aux = buscarPessoa(*inicio, codigo);
+
+    if (aux == NULL) {
+        printf("Erro: pessoa nao encontrada!\n");
+        return 0;
+    }
+
+    if (aux->ant != NULL) {
+        aux->ant->prox = aux->prox;
+    } else {
+        *inicio = aux->prox;
+    }
+
+    if (aux->prox != NULL) {
+        aux->prox->ant = aux->ant;
+    }
+
+    free(aux);
+
+    return 1;
 }
