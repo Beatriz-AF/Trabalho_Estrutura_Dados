@@ -3,7 +3,6 @@
 
 #include "validador.h"
 
-/* Arvore binaria de busca usada para o select ... order by nome */
 typedef struct NoArvore {
     char chave[MAX_TEXTO];
     char linha[MAX_LINHA];
@@ -11,7 +10,7 @@ typedef struct NoArvore {
 } NoArvore;
 
 NoArvore *arvore_inserir(NoArvore *raiz, const char *chave, const char *linha);
-void arvore_imprimir(const NoArvore *raiz);   /* in-order: sai ordenado */
+void arvore_imprimir(const NoArvore *raiz);
 void arvore_liberar(NoArvore *raiz);
 
 #endif

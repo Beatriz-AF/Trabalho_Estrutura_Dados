@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
     char opcao[16], nome_arq[256] = "";
     int ok;
 
-    /* 1) construir as listas a partir dos arquivos */
     b.pessoas = NULL;
     b.tipos = NULL;
     b.pets = NULL;
@@ -28,7 +27,6 @@ int main(int argc, char *argv[]) {
     fila_criar(&ftipo);
     fila_criar(&fpet);
 
-    /* 2) ler o script: argumento da linha de comando, arquivo (menu) ou digitado */
     if (argc > 1) {
         ok = ler_script_arquivo(argv[1], &comandos);
     } else {
@@ -46,20 +44,16 @@ int main(int argc, char *argv[]) {
     if (!ok) return 1;
     printf("%d comando(s) lido(s)\n\n", comandos.tam);
 
-    /* 3) filtrar: a fila de comandos fica so com os validos */
     filtrar_validos(&comandos, &validos);
     printf("\n%d comando(s) valido(s)\n", validos.tam);
 
-    /* 4) separar em filas especificas de pessoa, tipo_pet e pet */
     distribuir(&validos, &fpessoa, &ftipo, &fpet);
     printf("Filas: pessoa=%d, tipo_pet=%d, pet=%d\n", fpessoa.tam, ftipo.tam, fpet.tam);
 
-    /* 5) processar as operacoes chamando o cadastro */
     printf("\n----- processamento -----");
     processar_filas(&b, &fpessoa, &ftipo, &fpet);
     printf("\n-------------------------\n");
 
-    /* 6) salvar as alteracoes antes de finalizar */
     if (salvarPessoas(b.pessoas, "pessoas.txt") &&
         salvarTiposPet(b.tipos, "tipos_pet.txt") &&
         salvarPets(b.pets, "pets.txt"))

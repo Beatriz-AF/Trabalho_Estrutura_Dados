@@ -4,8 +4,6 @@
 #include "processador.h"
 #include "arvore.h"
 
-/* ---------- acesso aos campos do comando ---------- */
-
 static const Atrib *achaAtrib(const ComandoSQL *c, const char *campo) {
     int i;
     for (i = 0; i < c->n; i++)
@@ -14,7 +12,6 @@ static const Atrib *achaAtrib(const ComandoSQL *c, const char *campo) {
     return NULL;
 }
 
-/* Preenche *v e devolve 1 se o campo inteiro existe no comando */
 static int obterInt(const ComandoSQL *c, const char *campo, int *v) {
     const Atrib *a = achaAtrib(c, campo);
     if (a == NULL)
@@ -23,13 +20,10 @@ static int obterInt(const ComandoSQL *c, const char *campo, int *v) {
     return 1;
 }
 
-/* Devolve o texto do campo, ou NULL se ele nao esta no comando */
 static const char *obterStr(const ComandoSQL *c, const char *campo) {
     const Atrib *a = achaAtrib(c, campo);
     return a != NULL ? a->sval : NULL;
 }
-
-/* ---------- filtro (where): sem where, todos os registros casam ---------- */
 
 static int casaPessoa(const Pessoa *p, const ComandoSQL *c) {
     const Atrib *w = &c->where;
@@ -60,8 +54,6 @@ static int casaPet(const Pet *p, const ComandoSQL *c) {
     return 0;
 }
 
-/* ---------- regras que dependem de outras listas ---------- */
-
 static int pessoaTemPets(const Pet *pets, int codigoPessoa) {
     const Pet *p;
     for (p = pets; p != NULL; p = p->prox)
@@ -76,8 +68,6 @@ static int tipoEmUso(const Pet *pets, int codigoTipo) {
     return 0;
 }
 
-/* ---------- formatacao para o select ---------- */
-
 static void formataPessoa(const Pessoa *p, char *buf, size_t tam) {
     snprintf(buf, tam, "codigo=%d | nome=%s | fone=%s | endereco=%s | data_nascimento=%s",
              p->codigo, p->nome, p->fone, p->endereco, p->data_nascimento);
@@ -91,8 +81,6 @@ static void formataPet(const Pet *p, char *buf, size_t tam) {
     snprintf(buf, tam, "codigo=%d | codigo_pes=%d | nome=%s | codigo_tipo=%d",
              p->codigo, p->codigo_pes, p->nome, p->codigo_tipo);
 }
-
-/* ---------- 1) filtragem ---------- */
 
 void filtrar_validos(Fila *entrada, Fila *validos) {
     char erro[256];
@@ -111,8 +99,6 @@ void filtrar_validos(Fila *entrada, Fila *validos) {
     }
 }
 
-/* ---------- 2) distribuicao ---------- */
-
 void distribuir(Fila *validos, Fila *fpessoa, Fila *ftipo, Fila *fpet) {
     Comando *no;
 
@@ -123,9 +109,6 @@ void distribuir(Fila *validos, Fila *fpessoa, Fila *ftipo, Fila *fpet) {
     }
 }
 
-/* ---------- 3) execucao ---------- */
-
-/* Fila cujo primeiro comando tem o menor seq (ordem do script) */
 static Fila *fila_mais_antiga(Fila *a, Fila *b, Fila *c) {
     Fila *filas[3];
     Fila *melhor = NULL;
@@ -178,10 +161,9 @@ static void exec_insert(Banco *b, const ComandoSQL *c) {
 static void exec_update(Banco *b, const ComandoSQL *c) {
     const Atrib *a;
     int afetados = 0, temCod = 0, novoCod = 0;
-    int pes = -1, tip = -1;     /* -1 = campo nao alterado */
+    int pes = -1, tip = -1;
     const char *nome, *fone, *data, *end, *desc;
 
-    /* regras de integridade, antes de alterar qualquer registro */
     a = achaAtrib(c, "codigo");
     if (a != NULL) {
         if (c->tabela != TAB_PET) {
@@ -311,7 +293,6 @@ static void exec_delete(Banco *b, const ComandoSQL *c) {
     printf("OK: %d registro(s) removido(s) de %s\n", afetados, nome_tabela(c->tabela));
 }
 
-/* Sem order by: imprime na hora. Com order by: guarda na arvore (sai ordenado). */
 static NoArvore *acumula(NoArvore *raiz, int ordenar, const char *chave, const char *linha) {
     if (ordenar) return arvore_inserir(raiz, chave, linha);
     printf("  %s\n", linha);
@@ -372,7 +353,7 @@ static void executar(Banco *b, const Comando *no) {
 
     printf("\n[#%d] %s\n", no->seq + 1, no->descricao + strspn(no->descricao, " \t\r\n"));
     if (!validar_comando(no->descricao, &c, erro, sizeof erro)) {
-        printf("ERRO: %s\n", erro);   /* nao deveria ocorrer: ja validado */
+        printf("ERRO: %s\n", erro);
         return;
     }
     switch (c.tipo) {

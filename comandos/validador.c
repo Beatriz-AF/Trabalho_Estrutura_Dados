@@ -88,8 +88,6 @@ int dividir_linha(char *linha, char *partes[], int max) {
     return n;
 }
 
-/* ---------- analisador (lexer/parser simples) ---------- */
-
 static int falha(char *erro, size_t tam, const char *msg) {
     if (erro && tam) snprintf(erro, tam, "%s", msg);
     return 0;
@@ -99,7 +97,6 @@ static void pular(const char **p) {
     while (isspace((unsigned char)**p)) (*p)++;
 }
 
-/* Le identificador (letras, digitos, _), convertido para minusculas */
 static int ler_ident(const char **p, char *buf, size_t tam) {
     size_t n = 0;
     pular(p);
@@ -128,7 +125,6 @@ static int ler_kw(const char **p, const char *kw) {
     return 1;
 }
 
-/* Valor: 'texto' (aspas simples) ou inteiro (opcionalmente negativo) */
 static int ler_valor(const char **p, Atrib *a) {
     pular(p);
     if (**p == '\'') {
@@ -168,7 +164,6 @@ static void copia_valor(Atrib *dst, const Atrib *src) {
     snprintf(dst->sval, sizeof dst->sval, "%s", src->sval);
 }
 
-/* Confere tipo do valor e regras do campo (data, obrigatorio vazio) */
 static int checa_valor(const CampoInfo *ci, const Atrib *a, char *erro, size_t tam) {
     char msg[320];
     if (ci->inteiro && a->tipo != VAL_INT) {
@@ -190,7 +185,6 @@ static int checa_valor(const CampoInfo *ci, const Atrib *a, char *erro, size_t t
     return 1;
 }
 
-/* Le nome de campo, aplica alias (codigo_cli -> codigo_pes) e confere existencia */
 static int ler_campo(const char **p, Tabela t, char *out, size_t tam, char *erro, size_t etam) {
     char id[MAX_IDENT];
     char msg[160];
@@ -215,7 +209,6 @@ static int ler_tabela(const char **p, Tabela *t) {
     return 1;
 }
 
-/* where campo = valor */
 static int ler_condicao(const char **p, Tabela t, Atrib *w, char *erro, size_t tam) {
     char campo[MAX_IDENT];
     memset(w, 0, sizeof *w);
@@ -226,7 +219,6 @@ static int ler_condicao(const char **p, Tabela t, Atrib *w, char *erro, size_t t
     return checa_valor(campo_info(t, campo), w, erro, tam);
 }
 
-/* Confere ';' final e que nao ha texto sobrando */
 static int fim(const char **p, char *erro, size_t tam) {
     if (!ler_char(p, ';')) return falha(erro, tam, "falta ';' no final do comando");
     pular(p);
@@ -266,7 +258,6 @@ static int parse_insert(const char **p, ComandoSQL *c, char *erro, size_t tam) {
     }
     if (!ler_char(p, ')')) return falha(erro, tam, "quantidade de valores diferente da de campos");
 
-    /* campos obrigatorios (*) precisam estar presentes */
     ci = campos_de(c->tabela, &qtd);
     for (i = 0; i < qtd; i++) {
         int achou = 0;

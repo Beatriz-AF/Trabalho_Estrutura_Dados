@@ -1,7 +1,3 @@
-/* Teste isolado da validacao e interpretacao de comandos.
-   Nao depende das listas de pessoa/pet/tipo_pet.
-   Compilar e rodar:  make test   (ou: make test_validador && ./test_validador) */
-
 #include <stdio.h>
 #include <string.h>
 #include "validador.h"
@@ -22,7 +18,6 @@ static void mostra_atrib(const Atrib *a) {
     else                    printf("%s = '%s' (texto)", a->campo, a->sval);
 }
 
-/* Mostra como o comando foi interpretado: tipo, tabela, campos e valores */
 static void mostra_interpretacao(const ComandoSQL *c) {
     printf("   tipo: %s | tabela: %s\n", nome_tipo(c->tipo), nome_tabela(c->tabela));
     for (int i = 0; i < c->n; i++) {
@@ -39,7 +34,6 @@ static void mostra_interpretacao(const ComandoSQL *c) {
         printf("   order by: %s\n", campo_ordenacao(c->tabela));
 }
 
-/* esperado = 1 se o comando deve ser valido, 0 se deve ser rejeitado */
 static void caso(const char *texto, int esperado) {
     ComandoSQL c;
     char erro[256];
@@ -76,24 +70,24 @@ int main(void) {
     caso("SELECT * FROM pet WHERE codigo = -5 ORDER BY nome;", 1);
 
     printf("===== comandos INVALIDOS =====\n\n");
-    caso("insert into pessoa(codigo, nome, fone) values(1, 'ana', '1');", 0);            /* data obrigatoria */
-    caso("insert into pessoa(codigo, nome, data_nascimento) values(3, josé, '04/10/2001');", 0); /* texto sem aspas */
-    caso("insert into pessoa(codigo, nome, data_nascimento) values('x', 'ana', '01/01/2000');", 0); /* inteiro com aspas */
-    caso("insert into pessoa(codigo, nome, data_nascimento) values(1, 'ana', '31/02/2000');", 0);   /* data inexistente */
-    caso("insert into pessoa(codigo, nome, data_nascimento) values(1, 'ana');", 0);     /* faltam valores */
-    caso("insert into pessoa(codigo, nome, data_nascimento, xx) values(1, 'a', '01/01/2000', 1);", 0); /* campo inexistente */
-    caso("insert into pessoa(codigo, codigo, nome, data_nascimento) values(1, 2, 'a', '01/01/2000');", 0); /* campo repetido */
-    caso("insert into cliente(codigo) values(1);", 0);                                 /* tabela inexistente */
-    caso("insert into pet codigo, nome values(1, 'a');", 0);                           /* sintaxe */
-    caso("update pet set nome = 'a';", 0);                                             /* update sem where */
-    caso("delete from pet;", 0);                                                       /* delete sem where */
-    caso("select * from pet order by codigo;", 0);                                     /* order by fora do nome */
-    caso("select * from pet where codigo = 3", 0);                                     /* falta ';' */
-    caso("select * from pet where codigo = 3; extra", 0);                              /* texto depois do ';' */
-    caso("select nome from pet;", 0);                                                  /* falta '*' */
-    caso("select * from pet where codigo = 'abc';", 0);                                /* inteiro com aspas */
-    caso("drop table pet;", 0);                                                        /* comando desconhecido */
-    caso("", 0);                                                                       /* vazio */
+    caso("insert into pessoa(codigo, nome, fone) values(1, 'ana', '1');", 0);
+    caso("insert into pessoa(codigo, nome, data_nascimento) values(3, josé, '04/10/2001');", 0);
+    caso("insert into pessoa(codigo, nome, data_nascimento) values('x', 'ana', '01/01/2000');", 0);
+    caso("insert into pessoa(codigo, nome, data_nascimento) values(1, 'ana', '31/02/2000');", 0);
+    caso("insert into pessoa(codigo, nome, data_nascimento) values(1, 'ana');", 0);
+    caso("insert into pessoa(codigo, nome, data_nascimento, xx) values(1, 'a', '01/01/2000', 1);", 0);
+    caso("insert into pessoa(codigo, codigo, nome, data_nascimento) values(1, 2, 'a', '01/01/2000');", 0);
+    caso("insert into cliente(codigo) values(1);", 0);
+    caso("insert into pet codigo, nome values(1, 'a');", 0);
+    caso("update pet set nome = 'a';", 0);
+    caso("delete from pet;", 0);
+    caso("select * from pet order by codigo;", 0);
+    caso("select * from pet where codigo = 3", 0);
+    caso("select * from pet where codigo = 3; extra", 0);
+    caso("select nome from pet;", 0);
+    caso("select * from pet where codigo = 'abc';", 0);
+    caso("drop table pet;", 0);
+    caso("", 0);
 
     printf("==============================\n");
     printf("%d caso(s) testado(s), %d falha(s)\n", total, falhas);

@@ -5,7 +5,6 @@
 
 #define TAM_LINHA 1024
 
-/* Devolve o proximo campo da linha (separada por ';'). Campo ausente vira "". */
 static const char *proximoCampo(char **cur) {
     char *ini = *cur, *fim;
 
@@ -22,8 +21,6 @@ static const char *proximoCampo(char **cur) {
     return ini;
 }
 
-/* Grava do ultimo para o primeiro: ao carregar (inserindo no inicio),
-   a ordem da lista volta exatamente a mesma. */
 static void gravaPessoa(FILE *f, const Pessoa *p) {
     if (p == NULL)
         return;
@@ -60,7 +57,7 @@ int carregarPessoas(Pessoa **inicio, const char *arq) {
     char linha[TAM_LINHA];
 
     if (f == NULL)
-        return 1;   /* arquivo ainda nao existe: lista comeca vazia */
+        return 1;
 
     while (fgets(linha, sizeof(linha), f) != NULL) {
         char *cur;

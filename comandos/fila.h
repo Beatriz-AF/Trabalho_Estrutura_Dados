@@ -4,11 +4,10 @@
 #include <stdio.h>
 #include "validador.h"
 
-/* No da fila de comandos (struct comando) */
 typedef struct Comando {
-    int seq;                    /* posicao original no script (ordem de execucao) */
-    Tabela tabela;              /* tabela alvo, preenchido apos a validacao */
-    char descricao[MAX_LINHA];  /* texto do comando */
+    int seq;
+    Tabela tabela;
+    char descricao[MAX_LINHA];
     struct Comando *prox;
 } Comando;
 

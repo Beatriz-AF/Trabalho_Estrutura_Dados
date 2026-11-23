@@ -31,7 +31,6 @@ int fila_enfileirar(Fila *f, const char *descricao) {
     return 1;
 }
 
-/* Anexa um no ja existente, preservando seu seq */
 void fila_anexar(Fila *f, Comando *no) {
     anexa(f, no);
 }
@@ -57,7 +56,6 @@ static int somente_espacos(const char *s) {
     return 1;
 }
 
-/* Le o script inteiro e separa comandos pelo ';' (ignorando ';' dentro de aspas) */
 int ler_comandos(FILE *arq, Fila *f) {
     char buf[MAX_LINHA];
     size_t n = 0;
@@ -73,7 +71,7 @@ int ler_comandos(FILE *arq, Fila *f) {
         }
     }
     buf[n] = '\0';
-    /* sobra sem ';' final: entra na fila para ser reportada como invalida */
+
     if (n > 0 && !somente_espacos(buf))
         if (!fila_enfileirar(f, buf)) return 0;
     return 1;

@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 
-/* data_nascimento e obrigatoria (asterisco do enunciado).
-   Deve ficar em 1: o cadastro de pessoa (inserirPessoa) exige a data. */
 #define DATA_NASCIMENTO_OBRIGATORIA 1
 
 #define MAX_TEXTO  256
@@ -16,7 +14,6 @@ typedef enum { TIPO_INSERT, TIPO_UPDATE, TIPO_DELETE, TIPO_SELECT } TipoComando;
 typedef enum { TAB_PESSOA = 0, TAB_TIPO_PET, TAB_PET } Tabela;
 typedef enum { VAL_INT, VAL_STR } TipoValor;
 
-/* Par campo = valor (usado em insert, update e where) */
 typedef struct {
     char campo[MAX_IDENT];
     TipoValor tipo;
@@ -24,15 +21,14 @@ typedef struct {
     char sval[MAX_TEXTO];
 } Atrib;
 
-/* Comando ja interpretado e validado */
 typedef struct {
     TipoComando tipo;
     Tabela tabela;
-    int n;                      /* insert: campos/valores; update: atribuicoes */
+    int n;
     Atrib atribs[MAX_CAMPOS];
     int tem_where;
     Atrib where;
-    int tem_order;              /* order by nome (ou descricao em tipo_pet) */
+    int tem_order;
 } ComandoSQL;
 
 int validar_comando(const char *texto, ComandoSQL *c, char *erro, size_t tam);

@@ -11,7 +11,7 @@ NoArvore *arvore_inserir(NoArvore *raiz, const char *chave, const char *linha) {
         snprintf(no->linha, sizeof no->linha, "%s", linha);
         return no;
     }
-    /* iguais vao para a direita, mantendo a ordem de insercao entre eles */
+
     if (strcmp(chave, raiz->chave) < 0)
         raiz->esq = arvore_inserir(raiz->esq, chave, linha);
     else
