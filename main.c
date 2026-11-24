@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "pessoa.h"
 #include "tipo_pet.h"
+#include "pet.h"
 
 int main() {
 
@@ -15,18 +17,7 @@ int main() {
     inserirPessoa(&listaPessoas, 3, "Jose",
                   "859997788", "15/08/2000", "Rua C");
 
-    printf("\n--- LISTA ORIGINAL ---\n");
-    listarPessoas(listaPessoas);
-
-    atualizarPessoa(listaPessoas, 1,
-                    "Joao Pedro", NULL, NULL, NULL);
-
-    printf("\n--- LISTA APOS ATUALIZACAO ---\n");
-    listarPessoas(listaPessoas);
-
-    removerPessoa(&listaPessoas, 2);
-
-    printf("\n--- LISTA APOS REMOCAO ---\n");
+    printf("\n--- LISTA PESSOAS ---\n");
     listarPessoas(listaPessoas);
 
     liberarPessoas(&listaPessoas);
@@ -40,17 +31,28 @@ int main() {
     printf("\n--- TIPOS DE PET CADASTRADOS ---\n");
     listarTiposPet(listaTiposPet);
 
-    atualizarTipoPet(listaTiposPet, 1, "Cao");
-
-    printf("\n--- TIPOS APOS ATUALIZACAO ---\n");
-    listarTiposPet(listaTiposPet);
-
-    removerTipoPet(&listaTiposPet, 2);
-
-    printf("\n--- TIPOS APOS REMOCAO ---\n");
-    listarTiposPet(listaTiposPet);
-
     liberarTiposPet(&listaTiposPet);
+
+    Pet *listaPets = NULL;
+
+    inserirPet(&listaPets, 1, 10, "Bob", 1);
+    inserirPet(&listaPets, 2, 10, "Luna", 2);
+    inserirPet(&listaPets, 3, 20, "Mel", 1);
+
+    printf("\n--- PETS CADASTRADOS ---\n");
+    listarPets(listaPets);
+
+    atualizarPet(listaPets, 1, -1, "Bob Junior", -1);
+
+    printf("\n--- PETS APOS ATUALIZACAO ---\n");
+    listarPets(listaPets);
+
+    removerPet(&listaPets, 2);
+
+    printf("\n--- PETS APOS REMOCAO ---\n");
+    listarPets(listaPets);
+
+    liberarPets(&listaPets);
     
     return 0;
 }
