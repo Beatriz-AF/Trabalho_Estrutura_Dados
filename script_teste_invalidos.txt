@@ -1,8 +1,0 @@
-insert into pessoa(codigo, nome, fone) values(10, 'ana', '859990000');
-insert into pet(codigo, codigo_pes, nome, codigo_tipo) values(9, 99, 'x', 1);
-update pet set nome = 'zz' where codigo = 1;
-select * from pessoa where codigo = 'abc';
-insert into pessoa(codigo, nome, data_nascimento) values(11, 'bia', '31/02/2000');
-delete from pessoa where codigo = 1;
-update pessoa set codigo = 50 where codigo = 2;
-select * from pet order by fone;
