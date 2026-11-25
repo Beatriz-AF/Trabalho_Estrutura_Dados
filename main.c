@@ -1,78 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "pessoa.h"
-#include "tipo_pet.h"
-#include "pet.h"
-#include "integridade.h"
-#include "arquivos.h"
+
+#include "pessoa/pessoa.h"
+#include "tipo_pet/tipo_pet.h"
+#include "pet/pet.h"
+#include "integridade/integridade.h"
+#include "arquivos/arquivos.h"
+#include "arvore/arvore.h"
 
 int main() {
 
-    
-Pessoa *pessoasArquivo = NULL;
-TipoPet *tiposArquivo = NULL;
-Pet *petsArquivo = NULL;
 
-inserirPessoa(&pessoasArquivo, 1, "Joao",
-              "85999999999", "10/05/2000", "Rua A");
+printf("\n--- TESTE ARVORE DE TIPOS DE PET ---\n");
 
-inserirTipoPet(&tiposArquivo, 1, "Cachorro");
+TipoPet *tiposArvore = NULL;
+NoArvore *arvoreTipos = NULL;
 
-cadastrarPetValidado(&petsArquivo,
-                     pessoasArquivo,
-                     tiposArquivo,
-                     10, 1, "Bob", 1);
+inserirTipoPet(&tiposArvore, 1, "Cachorro");
+inserirTipoPet(&tiposArvore, 2, "Gato");
+inserirTipoPet(&tiposArvore, 3, "Coelho");
 
-printf("\n--- TESTE DE SALVAMENTO ---\n");
-
-if (salvarPessoas(pessoasArquivo, "pessoas.dat")) {
-    printf("Pessoas salvas com sucesso!\n");
+if (construirArvoreTiposPet(&arvoreTipos, tiposArvore)) {
+    percorrerEmOrdem(arvoreTipos);
 }
 
-if (salvarTiposPet(tiposArquivo, "tipos_pet.dat")) {
-    printf("Tipos de pet salvos com sucesso!\n");
+liberarArvore(arvoreTipos);
+liberarTiposPet(&tiposArvore);
+
+
+printf("\n--- TESTE ARVORE DE PETS ---\n");
+
+Pet *petsArvore = NULL;
+NoArvore *arvorePets = NULL;
+
+inserirPet(&petsArvore, 1, 10, "Bob", 1);
+inserirPet(&petsArvore, 2, 10, "Luna", 2);
+inserirPet(&petsArvore, 3, 20, "Mel", 1);
+inserirPet(&petsArvore, 4, 20, "Amora", 2);
+
+if (construirArvorePets(&arvorePets, petsArvore)) {
+    percorrerEmOrdem(arvorePets);
 }
 
-if (salvarPets(petsArquivo, "pets.dat")) {
-    printf("Pets salvos com sucesso!\n");
-}
-
-liberarPets(&petsArquivo);
-liberarTiposPet(&tiposArquivo);
-liberarPessoas(&pessoasArquivo);
-
-
-printf("\n--- TESTE DE CARREGAMENTO ---\n");
-
-Pessoa *pessoasCarregadas = NULL;
-TipoPet *tiposCarregados = NULL;
-Pet *petsCarregados = NULL;
-
-int pessoasOk = carregarPessoas(
-    &pessoasCarregadas, "pessoas.dat");
-
-int tiposOk = carregarTiposPet(
-    &tiposCarregados, "tipos_pet.dat");
-
-if (pessoasOk && tiposOk) {
-    carregarPets(&petsCarregados,
-                pessoasCarregadas,
-                tiposCarregados,
-                "pets.dat");
-}
-
-printf("\n--- PESSOAS RECUPERADAS ---\n");
-listarPessoas(pessoasCarregadas);
-
-printf("\n--- TIPOS RECUPERADOS ---\n");
-listarTiposPet(tiposCarregados);
-
-printf("\n--- PETS RECUPERADOS ---\n");
-listarPets(petsCarregados);
-
-liberarPets(&petsCarregados);
-liberarTiposPet(&tiposCarregados);
-liberarPessoas(&pessoasCarregadas);
+liberarArvore(arvorePets);
+liberarPets(&petsArvore);
 
 return 0;
 }
