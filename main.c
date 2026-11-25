@@ -4,54 +4,75 @@
 #include "tipo_pet.h"
 #include "pet.h"
 #include "integridade.h"
+#include "arquivos.h"
 
 int main() {
 
-    Pessoa *pessoasIntegridade = NULL;
-    TipoPet *tiposIntegridade = NULL;
-    Pet *petsIntegridade = NULL;
-
-    inserirPessoa(&pessoasIntegridade, 1, "Joao","85999999999", "10/05/2000", "Rua A");
-
-    inserirPessoa(&pessoasIntegridade, 2, "Maria","85988888888", "15/08/2001", "Rua B");
-
-    inserirTipoPet(&tiposIntegridade, 1, "Cachorro");
-    inserirTipoPet(&tiposIntegridade, 2, "Gato");
-
-    cadastrarPetValidado(&petsIntegridade, pessoasIntegridade, tiposIntegridade, 10, 1, "Bob", 1);
-
-    printf("\n--- TESTE UPDATE INVALIDO ---\n");
-
-    atualizarPetValidado(petsIntegridade, pessoasIntegridade, tiposIntegridade, 10, 99, NULL, -1);
-
-    printf("\n--- TESTE UPDATE VALIDO ---\n");
-
-    atualizarPetValidado(petsIntegridade, pessoasIntegridade, tiposIntegridade, 10, 2, "Bob Junior", 2);
-
-    listarPets(petsIntegridade);
-
-    printf("\n--- TESTE DELETE PESSOA ---\n");
-
-    removerPessoaSeguro(&pessoasIntegridade, petsIntegridade, 2);
-
-    printf("\n--- TESTE DELETE TIPO ---\n");
-
-    removerTipoPetSeguro(&tiposIntegridade, petsIntegridade, 2);
-
-    printf("\n--- REMOVENDO PET ---\n");
-
-    removerPet(&petsIntegridade, 10);
-
-    printf("\n--- EXCLUSOES APOS REMOVER PET ---\n");
-
-    removerPessoaSeguro(&pessoasIntegridade, petsIntegridade, 2);
-
-    removerTipoPetSeguro(&tiposIntegridade, petsIntegridade, 2);
-
-    liberarPets(&petsIntegridade);
-    liberarTiposPet(&tiposIntegridade);
-    liberarPessoas(&pessoasIntegridade);
-
     
-    return 0;
+Pessoa *pessoasArquivo = NULL;
+TipoPet *tiposArquivo = NULL;
+Pet *petsArquivo = NULL;
+
+inserirPessoa(&pessoasArquivo, 1, "Joao",
+              "85999999999", "10/05/2000", "Rua A");
+
+inserirTipoPet(&tiposArquivo, 1, "Cachorro");
+
+cadastrarPetValidado(&petsArquivo,
+                     pessoasArquivo,
+                     tiposArquivo,
+                     10, 1, "Bob", 1);
+
+printf("\n--- TESTE DE SALVAMENTO ---\n");
+
+if (salvarPessoas(pessoasArquivo, "pessoas.dat")) {
+    printf("Pessoas salvas com sucesso!\n");
+}
+
+if (salvarTiposPet(tiposArquivo, "tipos_pet.dat")) {
+    printf("Tipos de pet salvos com sucesso!\n");
+}
+
+if (salvarPets(petsArquivo, "pets.dat")) {
+    printf("Pets salvos com sucesso!\n");
+}
+
+liberarPets(&petsArquivo);
+liberarTiposPet(&tiposArquivo);
+liberarPessoas(&pessoasArquivo);
+
+
+printf("\n--- TESTE DE CARREGAMENTO ---\n");
+
+Pessoa *pessoasCarregadas = NULL;
+TipoPet *tiposCarregados = NULL;
+Pet *petsCarregados = NULL;
+
+int pessoasOk = carregarPessoas(
+    &pessoasCarregadas, "pessoas.dat");
+
+int tiposOk = carregarTiposPet(
+    &tiposCarregados, "tipos_pet.dat");
+
+if (pessoasOk && tiposOk) {
+    carregarPets(&petsCarregados,
+                pessoasCarregadas,
+                tiposCarregados,
+                "pets.dat");
+}
+
+printf("\n--- PESSOAS RECUPERADAS ---\n");
+listarPessoas(pessoasCarregadas);
+
+printf("\n--- TIPOS RECUPERADOS ---\n");
+listarTiposPet(tiposCarregados);
+
+printf("\n--- PETS RECUPERADOS ---\n");
+listarPets(petsCarregados);
+
+liberarPets(&petsCarregados);
+liberarTiposPet(&tiposCarregados);
+liberarPessoas(&pessoasCarregadas);
+
+return 0;
 }
