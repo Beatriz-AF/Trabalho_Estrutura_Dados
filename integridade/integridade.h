@@ -2,9 +2,9 @@
 #ifndef INTEGRIDADE_H
 #define INTEGRIDADE_H
 
-#include "pessoa.h"
-#include "tipo_pet.h"
-#include "pet.h"
+#include "../pessoa/pessoa.h"
+#include "../tipo_pet/tipo_pet.h"
+#include "../pet/pet.h"
 
 int cadastrarPetValidado(Pet **listaPets,
                         Pessoa *listaPessoas,

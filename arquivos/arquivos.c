@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "arquivos.h"
-#include "integridade.h"
+#include "../integridade/integridade.h"
 
 typedef struct {
     int codigo;
