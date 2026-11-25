@@ -1,10 +1,7 @@
 
 #ifndef PESSOA_H
-//verifica se pessoa ainda nao foi definido, se nao, define a estrutura da pessoa e declara as funcoes que manipulam a lista de pessoas
 #define PESSOA_H
-//define a estrutura da pessoa para impedir inclusoes repetidas
 
-//define a estrutura da pessoa e declara as funcoes que manipulam a lista de pessoas
 
 typedef struct pessoa {
     int codigo;
@@ -17,7 +14,6 @@ typedef struct pessoa {
     struct pessoa *prox;
 } Pessoa;
 
-// Funcoes da lista de pessoas
 Pessoa *buscarPessoa(Pessoa *inicio, int codigo);
 int inserirPessoa(Pessoa **inicio, int codigo,
                   const char *nome, const char *fone,
