@@ -8,63 +8,38 @@
 #include "arquivos/arquivos.h"
 #include "arvore/arvore.h"
 #include "comandos/fila.h"
+#include "comandos/leitor.h"
+#include "comandos/validador.h"
 
 int main() {
 
+printf("\n--- TESTE DO VALIDADOR SQL ---\n");
 
-printf("\n--- TESTE DE DISTRIBUICAO ---\n");
+const char *comandosTeste[] = {
+    "INSERT INTO tipo_pet VALUES (1, 'Cachorro');",
+    "INSERT INTO tipo_pet VALUES (2, 'Gato');",
+    "INSERT INTO tipo_pet VALUES (0, 'Coelho');",
+    "INSERT INTO tipo_pet VALUES (3, 'Papagaio'",
+    "INSERT INTO tipo_pet VALUES (abc, 'Peixe');"
+};
 
-Fila geral, pessoas, tipos, pets;
+for (int i = 0; i < 5; i++) {
 
-inicializarFila(&geral);
-inicializarFila(&pessoas);
-inicializarFila(&tipos);
-inicializarFila(&pets);
+    int codigo;
+    char descricao[100];
 
-enfileirar(&geral,
-           "INSERT INTO pessoa ...",
-           1, COMANDO_PESSOA);
+    printf("\nComando: %s\n", comandosTeste[i]);
 
-enfileirar(&geral,
-           "INSERT INTO pet ...",
-           2, COMANDO_PET);
+    if (validarInsertTipoPet(comandosTeste[i],
+                            &codigo, descricao)) {
 
-enfileirar(&geral,
-           "SELECT * FROM pessoa;",
-           3, COMANDO_PESSOA);
+        printf("VALIDO | Codigo: %d | Descricao: %s\n",
+               codigo, descricao);
 
-enfileirar(&geral,
-           "DELETE FROM tipo_pet WHERE codigo = 2;",
-           4, COMANDO_TIPO_PET);
-
-if (distribuirComandos(&geral, &pessoas,
-                       &tipos, &pets)) {
-
-    printf("\n--- FILA PESSOAS ---\n");
-    listarFila(&pessoas);
-
-    printf("\n--- FILA TIPOS ---\n");
-    listarFila(&tipos);
-
-    printf("\n--- FILA PETS ---\n");
-    listarFila(&pets);
-
-    printf("\n--- ORDEM FINAL ---\n");
-
-    NoComando atual;
-
-    while (retirarProximoComando(&pessoas, &tipos,
-                                &pets, &atual)) {
-
-        printf("Sequencia %d: %s\n",
-               atual.sequencia, atual.texto);
+    } else {
+        printf("Comando invalido!\n");
     }
 }
-
-liberarFila(&geral);
-liberarFila(&pessoas);
-liberarFila(&tipos);
-liberarFila(&pets);
 
 return 0;
 }
