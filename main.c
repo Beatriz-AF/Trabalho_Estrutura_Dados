@@ -7,43 +7,64 @@
 #include "integridade/integridade.h"
 #include "arquivos/arquivos.h"
 #include "arvore/arvore.h"
+#include "comandos/fila.h"
 
 int main() {
 
 
-printf("\n--- TESTE ARVORE DE TIPOS DE PET ---\n");
+printf("\n--- TESTE DE DISTRIBUICAO ---\n");
 
-TipoPet *tiposArvore = NULL;
-NoArvore *arvoreTipos = NULL;
+Fila geral, pessoas, tipos, pets;
 
-inserirTipoPet(&tiposArvore, 1, "Cachorro");
-inserirTipoPet(&tiposArvore, 2, "Gato");
-inserirTipoPet(&tiposArvore, 3, "Coelho");
+inicializarFila(&geral);
+inicializarFila(&pessoas);
+inicializarFila(&tipos);
+inicializarFila(&pets);
 
-if (construirArvoreTiposPet(&arvoreTipos, tiposArvore)) {
-    percorrerEmOrdem(arvoreTipos);
+enfileirar(&geral,
+           "INSERT INTO pessoa ...",
+           1, COMANDO_PESSOA);
+
+enfileirar(&geral,
+           "INSERT INTO pet ...",
+           2, COMANDO_PET);
+
+enfileirar(&geral,
+           "SELECT * FROM pessoa;",
+           3, COMANDO_PESSOA);
+
+enfileirar(&geral,
+           "DELETE FROM tipo_pet WHERE codigo = 2;",
+           4, COMANDO_TIPO_PET);
+
+if (distribuirComandos(&geral, &pessoas,
+                       &tipos, &pets)) {
+
+    printf("\n--- FILA PESSOAS ---\n");
+    listarFila(&pessoas);
+
+    printf("\n--- FILA TIPOS ---\n");
+    listarFila(&tipos);
+
+    printf("\n--- FILA PETS ---\n");
+    listarFila(&pets);
+
+    printf("\n--- ORDEM FINAL ---\n");
+
+    NoComando atual;
+
+    while (retirarProximoComando(&pessoas, &tipos,
+                                &pets, &atual)) {
+
+        printf("Sequencia %d: %s\n",
+               atual.sequencia, atual.texto);
+    }
 }
 
-liberarArvore(arvoreTipos);
-liberarTiposPet(&tiposArvore);
-
-
-printf("\n--- TESTE ARVORE DE PETS ---\n");
-
-Pet *petsArvore = NULL;
-NoArvore *arvorePets = NULL;
-
-inserirPet(&petsArvore, 1, 10, "Bob", 1);
-inserirPet(&petsArvore, 2, 10, "Luna", 2);
-inserirPet(&petsArvore, 3, 20, "Mel", 1);
-inserirPet(&petsArvore, 4, 20, "Amora", 2);
-
-if (construirArvorePets(&arvorePets, petsArvore)) {
-    percorrerEmOrdem(arvorePets);
-}
-
-liberarArvore(arvorePets);
-liberarPets(&petsArvore);
+liberarFila(&geral);
+liberarFila(&pessoas);
+liberarFila(&tipos);
+liberarFila(&pets);
 
 return 0;
 }
