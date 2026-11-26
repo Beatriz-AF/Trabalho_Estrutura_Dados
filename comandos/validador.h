@@ -28,4 +28,16 @@ int validarDeleteSQL(const char *texto,
                      TipoEntidade *entidade,
                      int *codigo);
 
+
+int validarUpdateTipoPet(const char *texto,
+                         int *codigo,
+                         char descricao[100]);
+
+int validarUpdatePessoa(const char *texto,
+                        int *codigo,
+                        char nome[100],
+                        char fone[20],
+                        char data[11],
+                        char endereco[150]);
+
 #endif

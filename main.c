@@ -14,67 +14,50 @@
 
 int main() {
 
-printf("\n--- TESTE PROCESSADOR DELETE ---\n");
+printf("\n--- TESTE UPDATE PESSOA ---\n");
 
-Pessoa *pessoasDelete = NULL;
-TipoPet *tiposDelete = NULL;
-Pet *petsDelete = NULL;
+Pessoa *pessoasUpdate = NULL;
 
-inserirPessoa(&pessoasDelete, 1, "Maria",
-              "85999999999", "10/05/2000", "Rua A");
+inserirPessoa(&pessoasUpdate, 1,
+              "Maria",
+              "85999999999",
+              "10/05/2000",
+              "Rua A");
 
-inserirTipoPet(&tiposDelete, 1, "Cachorro");
+printf("\n--- ANTES DO UPDATE ---\n");
+listarPessoas(pessoasUpdate);
 
-cadastrarPetValidado(&petsDelete,
-                     pessoasDelete,
-                     tiposDelete,
-                     10, 1, "Bob", 1);
+printf("\n--- EXECUTANDO UPDATE ---\n");
 
-printf("\n--- TENTANDO EXCLUIR MARIA ---\n");
+if (executarUpdatePessoaSQL(
+        "UPDATE pessoa SET nome = 'Maria Silva', "
+        "fone = '85988888888', "
+        "data_nascimento = '15/06/2000', "
+        "endereco = 'Rua B' WHERE codigo = 1;",
+        pessoasUpdate)) {
 
-if (!executarDeleteSQL(
-        "DELETE FROM pessoa WHERE codigo = 1;",
-        &pessoasDelete, &tiposDelete, &petsDelete)) {
+    printf("UPDATE executado com sucesso!\n");
 
-    printf("Exclusao recusada!\n");
+} else {
+    printf("Falha no UPDATE!\n");
 }
 
-printf("\n--- EXCLUINDO BOB ---\n");
+printf("\n--- DEPOIS DO UPDATE ---\n");
+listarPessoas(pessoasUpdate);
 
-if (executarDeleteSQL(
-        "DELETE FROM pet WHERE codigo = 10;",
-        &pessoasDelete, &tiposDelete, &petsDelete)) {
+printf("\n--- TESTE CODIGO INEXISTENTE ---\n");
 
-    printf("Pet removido com sucesso!\n");
+if (!executarUpdatePessoaSQL(
+        "UPDATE pessoa SET nome = 'Ana', "
+        "fone = '85977777777', "
+        "data_nascimento = '20/03/2001', "
+        "endereco = 'Rua C' WHERE codigo = 99;",
+        pessoasUpdate)) {
+
+    printf("Atualizacao recusada!\n");
 }
 
-printf("\n--- EXCLUINDO MARIA ---\n");
-
-if (executarDeleteSQL(
-        "DELETE FROM pessoa WHERE codigo = 1;",
-        &pessoasDelete, &tiposDelete, &petsDelete)) {
-
-    printf("Pessoa removida com sucesso!\n");
-}
-
-printf("\n--- EXCLUINDO TIPO CACHORRO ---\n");
-
-if (executarDeleteSQL(
-        "DELETE FROM tipo_pet WHERE codigo = 1;",
-        &pessoasDelete, &tiposDelete, &petsDelete)) {
-
-    printf("Tipo removido com sucesso!\n");
-}
-
-printf("\n--- LISTAS FINAIS ---\n");
-
-listarPessoas(pessoasDelete);
-listarTiposPet(tiposDelete);
-listarPets(petsDelete);
-
-liberarPets(&petsDelete);
-liberarTiposPet(&tiposDelete);
-liberarPessoas(&pessoasDelete);
+liberarPessoas(&pessoasUpdate);
 
 return 0;
 }

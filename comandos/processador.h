@@ -17,4 +17,12 @@ int executarDeleteSQL(const char *texto,
                      TipoPet **tipos,
                      Pet **pets);
 
+
+int executarUpdateTipoPetSQL(const char *texto,
+                             TipoPet **tipos);
+
+
+int executarUpdatePessoaSQL(const char *texto,
+                           Pessoa *pessoas);
+
 #endif

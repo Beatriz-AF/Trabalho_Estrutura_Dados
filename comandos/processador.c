@@ -122,3 +122,49 @@ int executarDeleteSQL(const char *texto,
             return 0;
     }
 }
+
+
+int executarUpdateTipoPetSQL(const char *texto,
+                             TipoPet **tipos) {
+
+    if (texto == NULL || tipos == NULL) {
+        return 0;
+    }
+
+    int codigo;
+    char descricao[100];
+
+    if (!validarUpdateTipoPet(texto,
+                             &codigo,
+                             descricao)) {
+
+        printf("Erro: comando UPDATE invalido!\n");
+        return 0;
+    }
+
+    return atualizarTipoPet(*tipos, codigo, descricao);
+}
+int executarUpdatePessoaSQL(const char *texto,
+                           Pessoa *pessoas) {
+
+    if (texto == NULL) {
+        return 0;
+    }
+
+    int codigo;
+    char nome[100];
+    char fone[20];
+    char data[11];
+    char endereco[150];
+
+    if (!validarUpdatePessoa(texto, &codigo,
+                             nome, fone,
+                             data, endereco)) {
+        printf("Erro: comando UPDATE pessoa invalido!\n");
+        return 0;
+    }
+
+    return atualizarPessoa(pessoas, codigo,
+                           nome, fone,
+                           data, endereco);
+}

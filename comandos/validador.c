@@ -349,3 +349,119 @@ int validarDeleteSQL(const char *texto,
 
     return 1;
 }
+
+
+int validarUpdateTipoPet(const char *texto,
+                         int *codigo,
+                         char descricao[100]) {
+
+    if (texto == NULL || codigo == NULL ||
+        descricao == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    int codigoTemp;
+    char descricaoTemp[100];
+
+    if (!consumirPalavra(&p, "UPDATE") ||
+        !consumirPalavra(&p, "TIPO_PET") ||
+        !consumirPalavra(&p, "SET") ||
+        !consumirPalavra(&p, "DESCRICAO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerTexto(&p, descricaoTemp, sizeof(descricaoTemp)) ||
+        !consumirPalavra(&p, "WHERE") ||
+        !consumirPalavra(&p, "CODIGO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoTemp) ||
+        !consumirCaractere(&p, ';')) {
+
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0' || descricaoTemp[0] == '\0') {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+    strcpy(descricao, descricaoTemp);
+
+    return 1;
+}
+
+
+int validarUpdatePessoa(const char *texto,
+                        int *codigo,
+                        char nome[100],
+                        char fone[20],
+                        char data[11],
+                        char endereco[150]) {
+
+    if (texto == NULL || codigo == NULL ||
+        nome == NULL || fone == NULL ||
+        data == NULL || endereco == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    int codigoTemp;
+    char nomeTemp[100];
+    char foneTemp[20];
+    char dataTemp[11];
+    char enderecoTemp[150];
+
+    if (!consumirPalavra(&p, "UPDATE") ||
+        !consumirPalavra(&p, "PESSOA") ||
+        !consumirPalavra(&p, "SET") ||
+
+        !consumirPalavra(&p, "NOME") ||
+        !consumirCaractere(&p, '=') ||
+        !lerTexto(&p, nomeTemp, sizeof(nomeTemp)) ||
+        !consumirCaractere(&p, ',') ||
+
+        !consumirPalavra(&p, "FONE") ||
+        !consumirCaractere(&p, '=') ||
+        !lerTexto(&p, foneTemp, sizeof(foneTemp)) ||
+        !consumirCaractere(&p, ',') ||
+
+        !consumirPalavra(&p, "DATA_NASCIMENTO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerTexto(&p, dataTemp, sizeof(dataTemp)) ||
+        !consumirCaractere(&p, ',') ||
+
+        !consumirPalavra(&p, "ENDERECO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerTexto(&p, enderecoTemp, sizeof(enderecoTemp)) ||
+
+        !consumirPalavra(&p, "WHERE") ||
+        !consumirPalavra(&p, "CODIGO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoTemp) ||
+        !consumirCaractere(&p, ';')) {
+
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0' ||
+        nomeTemp[0] == '\0' ||
+        dataTemp[0] == '\0') {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+
+    strcpy(nome, nomeTemp);
+    strcpy(fone, foneTemp);
+    strcpy(data, dataTemp);
+    strcpy(endereco, enderecoTemp);
+
+    return 1;
+}
+
+
