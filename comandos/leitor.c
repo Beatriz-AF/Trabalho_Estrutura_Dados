@@ -69,6 +69,13 @@ int identificarComando(const char *texto,
         return 0;
     }
 
+    // Remove a lista de campos do nome da tabela
+    char *parentese = strchr(tabela, '(');
+
+    if (parentese != NULL) {
+        *parentese = '\0';
+    }
+
     // Remove o ponto e virgula, se existir
     char *pontoVirgula = strchr(tabela, ';');
 

@@ -39,9 +39,12 @@ int executarInsertSQL(const char *texto,
             char data[11];
             char endereco[150];
 
+            
             if (!validarInsertPessoa(texto, &codigo,
-                                    nome, fone,
-                                    data, endereco)) {
+                                    nome, fone, data, endereco) &&
+                !validarInsertPessoaComCampos(
+                    texto, &codigo, nome, fone, data, endereco)) {
+
                 printf("Erro: INSERT pessoa invalido!\n");
                 return 0;
             }
@@ -54,11 +57,13 @@ int executarInsertSQL(const char *texto,
         case COMANDO_TIPO_PET: {
             char descricao[100];
 
-            if (!validarInsertTipoPet(texto, &codigo,
-                                     descricao)) {
+            if (!validarInsertTipoPet(texto, &codigo, descricao) &&
+                !validarInsertTipoPetComCampos(texto, &codigo,
+                                            descricao)) {
+
                 printf("Erro: INSERT tipo_pet invalido!\n");
                 return 0;
-            }
+                }
 
             return inserirTipoPet(tipos, codigo, descricao);
         }

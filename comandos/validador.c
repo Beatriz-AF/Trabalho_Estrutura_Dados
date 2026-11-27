@@ -7,6 +7,7 @@
 #include <errno.h>
 #include "validador.h"
 
+static int dataValida(const char *data);
 static void pularEspacos(const char **p) {
     while (isspace((unsigned char)**p)) {
         (*p)++;
@@ -231,8 +232,8 @@ int validarInsertPessoa(const char *texto,
     }
 
     if (nomeTemp[0] == '\0' ||
-        dataTemp[0] == '\0') {
-        return 0;
+    !dataValida(dataTemp)) {
+    return 0;
     }
 
     *codigo = codigoTemp;
@@ -649,6 +650,249 @@ int validarSelectOrderBySQL(const char *texto,
     }
 
     *entidade = entidadeTemp;
+    return 1;
+}
+
+
+int validarInsertTipoPetComCampos(const char *texto,
+                                 int *codigo,
+                                 char descricao[100]) {
+
+    if (texto == NULL || codigo == NULL ||
+        descricao == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    int codigoTemp;
+    char descricaoTemp[100];
+
+    if (!consumirPalavra(&p, "INSERT") ||
+        !consumirPalavra(&p, "INTO") ||
+        !consumirPalavra(&p, "TIPO_PET") ||
+
+        !consumirCaractere(&p, '(') ||
+        !consumirPalavra(&p, "CODIGO") ||
+        !consumirCaractere(&p, ',') ||
+        !consumirPalavra(&p, "DESCRICAO") ||
+        !consumirCaractere(&p, ')') ||
+
+        !consumirPalavra(&p, "VALUES") ||
+        !consumirCaractere(&p, '(') ||
+        !lerCodigo(&p, &codigoTemp) ||
+        !consumirCaractere(&p, ',') ||
+        !lerTexto(&p, descricaoTemp,
+                  sizeof(descricaoTemp)) ||
+        !consumirCaractere(&p, ')') ||
+        !consumirCaractere(&p, ';')) {
+
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0' || descricaoTemp[0] == '\0') {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+    strcpy(descricao, descricaoTemp);
+
+    return 1;
+}
+
+
+static int dataValida(const char *data) {
+
+    if (strlen(data) != 10 ||
+        data[2] != '/' || data[5] != '/') {
+        return 0;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        if (i == 2 || i == 5) {
+            continue;
+        }
+
+        if (!isdigit((unsigned char)data[i])) {
+            return 0;
+        }
+    }
+
+    int dia = (data[0] - '0') * 10 +
+              (data[1] - '0');
+
+    int mes = (data[3] - '0') * 10 +
+              (data[4] - '0');
+
+    int ano = (data[6] - '0') * 1000 +
+              (data[7] - '0') * 100 +
+              (data[8] - '0') * 10 +
+              (data[9] - '0');
+
+    if (ano < 1 || mes < 1 || mes > 12) {
+        return 0;
+    }
+
+    int diasMes[] = {
+        31, 28, 31, 30, 31, 30,
+        31, 31, 30, 31, 30, 31
+    };
+
+    int bissexto = (ano % 400 == 0) ||
+                   (ano % 4 == 0 && ano % 100 != 0);
+
+    if (bissexto) {
+        diasMes[1] = 29;
+    }
+
+    return dia >= 1 && dia <= diasMes[mes - 1];
+}
+
+
+int validarInsertPessoaComCampos(
+    const char *texto,
+    int *codigo,
+    char nome[100],
+    char fone[20],
+    char data[11],
+    char endereco[150]) {
+
+    if (texto == NULL || codigo == NULL ||
+        nome == NULL || fone == NULL ||
+        data == NULL || endereco == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    // 0: codigo, 1: nome, 2: fone,
+    // 3: data_nascimento, 4: endereco
+    int colunas[5];
+    int presentes[5] = {0};
+    int quantidade = 0;
+
+    int codigoTemp = 0;
+    char nomeTemp[100] = "";
+    char foneTemp[20] = "";
+    char dataTemp[11] = "";
+    char enderecoTemp[150] = "";
+
+    if (!consumirPalavra(&p, "INSERT") ||
+        !consumirPalavra(&p, "INTO") ||
+        !consumirPalavra(&p, "PESSOA") ||
+        !consumirCaractere(&p, '(')) {
+        return 0;
+    }
+
+    // Lê a lista de nomes das colunas.
+    while (1) {
+
+        int campo = -1;
+
+        if (consumirPalavra(&p, "CODIGO")) {
+            campo = 0;
+        } else if (consumirPalavra(&p, "NOME")) {
+            campo = 1;
+        } else if (consumirPalavra(&p, "FONE")) {
+            campo = 2;
+        } else if (consumirPalavra(&p, "DATA_NASCIMENTO")) {
+            campo = 3;
+        } else if (consumirPalavra(&p, "ENDERECO")) {
+            campo = 4;
+        }
+
+        if (campo == -1 || presentes[campo] ||
+            quantidade >= 5) {
+            return 0;
+        }
+
+        presentes[campo] = 1;
+        colunas[quantidade++] = campo;
+
+        if (consumirCaractere(&p, ')')) {
+            break;
+        }
+
+        if (!consumirCaractere(&p, ',')) {
+            return 0;
+        }
+    }
+
+    // Verifica os campos obrigatorios.
+    if (!presentes[0] || !presentes[1] ||
+        !presentes[3]) {
+        return 0;
+    }
+
+    if (!consumirPalavra(&p, "VALUES") ||
+        !consumirCaractere(&p, '(')) {
+        return 0;
+    }
+
+    // Lê cada valor na ordem das colunas.
+    for (int i = 0; i < quantidade; i++) {
+
+        int valido = 0;
+
+        switch (colunas[i]) {
+
+            case 0:
+                valido = lerCodigo(&p, &codigoTemp);
+                break;
+
+            case 1:
+                valido = lerTexto(
+                    &p, nomeTemp, sizeof(nomeTemp));
+                break;
+
+            case 2:
+                valido = lerTexto(
+                    &p, foneTemp, sizeof(foneTemp));
+                break;
+
+            case 3:
+                valido = lerTexto(
+                    &p, dataTemp, sizeof(dataTemp));
+                break;
+
+            case 4:
+                valido = lerTexto(
+                    &p, enderecoTemp, sizeof(enderecoTemp));
+                break;
+        }
+
+        if (!valido) {
+            return 0;
+        }
+
+        if (i < quantidade - 1 &&
+            !consumirCaractere(&p, ',')) {
+            return 0;
+        }
+    }
+
+    if (!consumirCaractere(&p, ')') ||
+        !consumirCaractere(&p, ';')) {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0' ||
+        nomeTemp[0] == '\0' ||
+        !dataValida(dataTemp)) {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+
+    strcpy(nome, nomeTemp);
+    strcpy(fone, foneTemp);
+    strcpy(data, dataTemp);
+    strcpy(endereco, enderecoTemp);
+
     return 1;
 }
 

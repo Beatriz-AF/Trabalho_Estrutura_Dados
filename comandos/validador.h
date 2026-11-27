@@ -40,8 +40,6 @@ int validarUpdatePessoa(const char *texto,
                         char data[11],
                         char endereco[150]);
 
-#endif
-
 
 int validarUpdatePet(const char *texto,
                      int *codigo,
@@ -57,3 +55,19 @@ int validarSelectSQL(const char *texto,
 
 int validarSelectOrderBySQL(const char *texto,
                             TipoEntidade *entidade);
+
+
+int validarInsertTipoPetComCampos(const char *texto,
+                                 int *codigo,
+                                 char descricao[100]);
+
+
+int validarInsertPessoaComCampos(
+    const char *texto,
+    int *codigo,
+    char nome[100],
+    char fone[20],
+    char data[11],
+    char endereco[150]);
+
+#endif
