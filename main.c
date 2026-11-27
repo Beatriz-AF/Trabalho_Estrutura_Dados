@@ -1,85 +1,74 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "pessoa/pessoa.h"
 #include "tipo_pet/tipo_pet.h"
 #include "pet/pet.h"
-#include "integridade/integridade.h"
-#include "arquivos/arquivos.h"
-#include "arvore/arvore.h"
-#include "comandos/fila.h"
-#include "comandos/leitor.h"
-#include "comandos/validador.h"
 #include "comandos/processador.h"
-#include "comandos/script.h"
 
-int main() {
+int main(void) {
 
-printf("\n--- TESTE UPDATE PARCIAL PESSOA ---\n");
+    Pessoa *pessoas = NULL;
+    TipoPet *tipos = NULL;
+    Pet *pets = NULL;
 
-Pessoa *pessoasParcial = NULL;
-TipoPet *tiposParcial = NULL;
-Pet *petsParcial = NULL;
+    printf("--- TESTE UPDATE PARCIAL PET ---\n");
 
-inserirPessoa(
-    &pessoasParcial, 1,
-    "Maria", "85999999999",
-    "10/05/2000", "Rua A");
+    inserirPessoa(&pessoas, 1, "Maria",
+                  "85999999999", "15/06/2000", "Rua A");
 
-const char *testesUpdate[] = {
+    inserirPessoa(&pessoas, 2, "Joao",
+                  "85988888888", "20/08/2001", "Rua B");
 
-    // 1: Altera somente telefone.
-    "UPDATE pessoa SET fone = '85988888888' "
-    "WHERE codigo = 1;",
+    inserirTipoPet(&tipos, 1, "Cachorro");
+    inserirTipoPet(&tipos, 2, "Gato");
 
-    // 2: Altera nome e endereco.
-    "UPDATE pessoa SET endereco = 'Rua B', "
-    "nome = 'Maria Silva' WHERE codigo = 1;",
+    inserirPet(&pets, 10, 1, "Bob", 1);
 
-    // 3: Altera data de nascimento.
-    "UPDATE pessoa SET data_nascimento = '15/06/2000' "
-    "WHERE codigo = 1;",
+    const char *testes[] = {
 
-    // 4: Invalido, data inexistente.
-    "UPDATE pessoa SET data_nascimento = '31/02/2000' "
-    "WHERE codigo = 1;",
+        "UPDATE pet SET nome = 'Max' WHERE codigo = 10;",
 
-    // 5: Invalido, nome vazio.
-    "UPDATE pessoa SET nome = '' "
-    "WHERE codigo = 1;",
+        "UPDATE pet SET codigo_pes = 2 WHERE codigo = 10;",
 
-    // 6: Invalido, campo repetido.
-    "UPDATE pessoa SET fone = '111', "
-    "fone = '222' WHERE codigo = 1;",
+        "UPDATE pet SET codigo_tipo = 2 WHERE codigo = 10;",
 
-    // 7: Invalido, pessoa inexistente.
-    "UPDATE pessoa SET nome = 'Ana' "
-    "WHERE codigo = 99;"
-};
+        "UPDATE pet SET nome = 'Luna', codigo_cli = 1 WHERE codigo = 10;",
 
-for (int i = 0; i < 7; i++) {
+        "UPDATE pet SET codigo_pes = 999 WHERE codigo = 10;",
 
-    printf("\nTeste %d:\n", i + 1);
+        "UPDATE pet SET codigo_tipo = 999 WHERE codigo = 10;",
 
-    if (executarComandoSQL(
-            testesUpdate[i],
-            &pessoasParcial,
-            &tiposParcial,
-            &petsParcial)) {
+        "UPDATE pet SET nome = '' WHERE codigo = 10;",
 
-        printf("UPDATE executado!\n");
+        "UPDATE pet SET nome = 'Mel', nome = 'Bob' WHERE codigo = 10;",
 
-    } else {
-        printf("UPDATE recusado!\n");
+        "UPDATE pet SET nome = 'Mel' WHERE codigo = 999;"
+    };
+
+    int quantidade = sizeof(testes) / sizeof(testes[0]);
+
+    for (int i = 0; i < quantidade; i++) {
+
+        printf("\nTeste %d:\n", i + 1);
+
+        if (executarUpdatePetSQL(
+                testes[i], pets, pessoas, tipos)) {
+
+            printf("UPDATE executado!\n");
+
+        } else {
+
+            printf("UPDATE recusado!\n");
+        }
     }
-}
 
-printf("\n--- RESULTADO FINAL ---\n");
-listarPessoas(pessoasParcial);
+    printf("\n--- RESULTADO FINAL ---\n");
 
-liberarPets(&petsParcial);
-liberarTiposPet(&tiposParcial);
-liberarPessoas(&pessoasParcial);
+    listarPets(pets);
 
-return  0;
+    liberarPets(&pets);
+    liberarPessoas(&pessoas);
+    liberarTiposPet(&tipos);
+
+    return 0;
 }

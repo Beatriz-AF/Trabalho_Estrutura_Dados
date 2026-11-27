@@ -1174,3 +1174,124 @@ int validarUpdatePessoaParcial(
 
     return 1;
 }
+
+int validarUpdatePetParcial(
+    const char *texto,
+    int *codigo,
+    unsigned int *campos,
+    int *codigoPes,
+    char nome[100],
+    int *codigoTipo) {
+
+    if (texto == NULL || codigo == NULL ||
+        campos == NULL || codigoPes == NULL ||
+        nome == NULL || codigoTipo == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    unsigned int camposTemp = 0;
+
+    int codigoTemp;
+    int codigoPesTemp = 0;
+    int codigoTipoTemp = 0;
+
+    char nomeTemp[100] = "";
+
+    if (!consumirPalavra(&p, "UPDATE") ||
+        !consumirPalavra(&p, "PET") ||
+        !consumirPalavra(&p, "SET")) {
+        return 0;
+    }
+
+    while (1) {
+
+        unsigned int campo = 0;
+        int valido = 0;
+
+        if (consumirPalavra(&p, "CODIGO_PES") ||
+            consumirPalavra(&p, "CODIGO_CLI")) {
+
+            campo = CAMPO_PET_DONO;
+
+        } else if (consumirPalavra(&p, "NOME")) {
+
+            campo = CAMPO_PET_NOME;
+
+        } else if (consumirPalavra(&p, "CODIGO_TIPO") ||
+                   consumirPalavra(&p, "CODIGO_TIPO_PET")) {
+
+            campo = CAMPO_PET_TIPO;
+
+        } else {
+            return 0;
+        }
+
+        // Impede campos repetidos.
+        if (camposTemp & campo) {
+            return 0;
+        }
+
+        if (!consumirCaractere(&p, '=')) {
+            return 0;
+        }
+
+        switch (campo) {
+
+            case CAMPO_PET_DONO:
+                valido = lerCodigo(&p, &codigoPesTemp);
+                break;
+
+            case CAMPO_PET_NOME:
+                valido = lerTexto(
+                    &p, nomeTemp, sizeof(nomeTemp));
+                break;
+
+            case CAMPO_PET_TIPO:
+                valido = lerCodigo(&p, &codigoTipoTemp);
+                break;
+        }
+
+        if (!valido) {
+            return 0;
+        }
+
+        camposTemp |= campo;
+
+        if (consumirCaractere(&p, ',')) {
+            continue;
+        }
+
+        break;
+    }
+
+    if (!consumirPalavra(&p, "WHERE") ||
+        !consumirPalavra(&p, "CODIGO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoTemp) ||
+        !consumirCaractere(&p, ';')) {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0') {
+        return 0;
+    }
+
+    // O nome do pet nao pode ser vazio.
+    if ((camposTemp & CAMPO_PET_NOME) &&
+        nomeTemp[0] == '\0') {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+    *campos = camposTemp;
+    *codigoPes = codigoPesTemp;
+    *codigoTipo = codigoTipoTemp;
+
+    strcpy(nome, nomeTemp);
+
+    return 1;
+}

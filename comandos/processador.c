@@ -248,23 +248,53 @@ int executarUpdatePetSQL(const char *texto,
     int codigo;
     int codigoPes;
     int codigoTipo;
+
+    unsigned int campos;
+
     char nome[100];
 
-    if (!validarUpdatePet(texto,
-                          &codigo,
-                          &codigoPes,
-                          nome,
-                          &codigoTipo)) {
+    if (!validarUpdatePetParcial(
+            texto, &codigo, &campos,
+            &codigoPes, nome, &codigoTipo)) {
 
-        printf("Erro: comando UPDATE pet invalido!\n");
+        printf("Erro: UPDATE pet invalido!\n");
         return 0;
+    }
+
+    // Procura o pet que sera atualizado.
+    Pet *petAtual = buscarPet(pets, codigo);
+
+    if (petAtual == NULL) {
+        printf("Erro: pet nao encontrado!\n");
+        return 0;
+    }
+
+    // Guarda os valores atuais.
+    int novoCodigoPes = petAtual->codigo_pes;
+    int novoCodigoTipo = petAtual->codigo_tipo;
+
+    char novoNome[100];
+
+    strcpy(novoNome, petAtual->nome);
+
+    // Altera somente os campos informados.
+    if (campos & CAMPO_PET_DONO) {
+        novoCodigoPes = codigoPes;
+    }
+
+    if (campos & CAMPO_PET_NOME) {
+        strcpy(novoNome, nome);
+    }
+
+    if (campos & CAMPO_PET_TIPO) {
+        novoCodigoTipo = codigoTipo;
     }
 
     return atualizarPetValidado(
         pets, pessoas, tipos,
-        codigo, codigoPes, nome, codigoTipo);
+        codigo, novoCodigoPes,
+        novoNome, novoCodigoTipo);
 }
-
 
 int executarComandoSQL(const char *texto,
                       Pessoa **pessoas,

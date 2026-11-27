@@ -93,4 +93,15 @@ int validarUpdatePessoaParcial(
     char data[11],
     char endereco[150]);
 
+    #define CAMPO_PET_DONO 1u
+#define CAMPO_PET_NOME 2u
+#define CAMPO_PET_TIPO 4u
+
+int validarUpdatePetParcial(
+    const char *texto,
+    int *codigo,
+    unsigned int *campos,
+    int *codigoPes,
+    char nome[100],
+    int *codigoTipo);
 #endif
