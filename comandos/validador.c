@@ -528,132 +528,124 @@ int validarUpdatePet(const char *texto,
     return 1;
 }
 
+static int lerEntidade(const char **p,
+                       TipoEntidade *entidade) {
+
+    if (consumirPalavra(p, "PESSOA")) {
+        *entidade = COMANDO_PESSOA;
+
+    } else if (consumirPalavra(p, "TIPO_PET")) {
+        *entidade = COMANDO_TIPO_PET;
+
+    } else if (consumirPalavra(p, "PET")) {
+        *entidade = COMANDO_PET;
+
+    } else {
+        return 0;
+    }
+
+    return 1;
+}
+
+
+static int fimComando(const char **p) {
+
+    pularEspacos(p);
+
+    return **p == '\0';
+}
+
+int validarSelectCompleto(
+    const char *texto,
+    TipoEntidade *entidade,
+    int *temWhere,
+    int *codigo,
+    int *temOrderBy) {
+
+    if (!texto || !entidade || !temWhere ||
+        !codigo || !temOrderBy) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    *temWhere = 0;
+    *temOrderBy = 0;
+    *codigo = 0;
+
+    if (!consumirPalavra(&p, "SELECT") ||
+        !consumirCaractere(&p, '*') ||
+        !consumirPalavra(&p, "FROM") ||
+        !lerEntidade(&p, entidade)) {
+        return 0;
+    }
+
+    // WHERE opcional.
+    if (consumirPalavra(&p, "WHERE")) {
+
+        *temWhere = 1;
+
+        if (!consumirPalavra(&p, "CODIGO") ||
+            !consumirCaractere(&p, '=') ||
+            !lerCodigo(&p, codigo)) {
+            return 0;
+        }
+    }
+
+    // ORDER BY opcional.
+    if (consumirPalavra(&p, "ORDER")) {
+
+        *temOrderBy = 1;
+
+        if (!consumirPalavra(&p, "BY")) {
+            return 0;
+        }
+
+        if (*entidade == COMANDO_TIPO_PET) {
+
+            if (!consumirPalavra(&p, "DESCRICAO") &&
+                !consumirPalavra(&p, "NOME")) {
+                return 0;
+            }
+
+        } else {
+
+            if (!consumirPalavra(&p, "NOME")) {
+                return 0;
+            }
+        }
+    }
+
+    return consumirCaractere(&p, ';') &&
+           fimComando(&p);
+}
+
 
 int validarSelectSQL(const char *texto,
                      TipoEntidade *entidade,
                      int *temWhere,
                      int *codigo) {
 
-    if (texto == NULL || entidade == NULL ||
-        temWhere == NULL || codigo == NULL) {
-        return 0;
-    }
+    int temOrderBy;
 
-    const char *p = texto;
-
-    TipoEntidade entidadeTemp;
-    int temWhereTemp = 0;
-    int codigoTemp = 0;
-
-    if (!consumirPalavra(&p, "SELECT") ||
-        !consumirCaractere(&p, '*') ||
-        !consumirPalavra(&p, "FROM")) {
-        return 0;
-    }
-
-    if (consumirPalavra(&p, "PESSOA")) {
-        entidadeTemp = COMANDO_PESSOA;
-
-    } else if (consumirPalavra(&p, "TIPO_PET")) {
-        entidadeTemp = COMANDO_TIPO_PET;
-
-    } else if (consumirPalavra(&p, "PET")) {
-        entidadeTemp = COMANDO_PET;
-
-    } else {
-        return 0;
-    }
-
-    pularEspacos(&p);
-
-    if (consumirPalavra(&p, "WHERE")) {
-
-        temWhereTemp = 1;
-
-        if (!consumirPalavra(&p, "CODIGO") ||
-            !consumirCaractere(&p, '=') ||
-            !lerCodigo(&p, &codigoTemp)) {
-            return 0;
-        }
-    }
-
-    if (!consumirCaractere(&p, ';')) {
-        return 0;
-    }
-
-    pularEspacos(&p);
-
-    if (*p != '\0') {
-        return 0;
-    }
-
-    *entidade = entidadeTemp;
-    *temWhere = temWhereTemp;
-    *codigo = codigoTemp;
-
-    return 1;
+    return validarSelectCompleto(
+        texto, entidade, temWhere,
+        codigo, &temOrderBy) && !temOrderBy;
 }
 
 
 int validarSelectOrderBySQL(const char *texto,
                             TipoEntidade *entidade) {
 
-    if (texto == NULL || entidade == NULL) {
-        return 0;
-    }
+    int temWhere;
+    int codigo;
+    int temOrderBy;
 
-    const char *p = texto;
-    TipoEntidade entidadeTemp;
-
-    if (!consumirPalavra(&p, "SELECT") ||
-        !consumirCaractere(&p, '*') ||
-        !consumirPalavra(&p, "FROM")) {
-        return 0;
-    }
-
-    if (consumirPalavra(&p, "PESSOA")) {
-        entidadeTemp = COMANDO_PESSOA;
-
-    } else if (consumirPalavra(&p, "TIPO_PET")) {
-        entidadeTemp = COMANDO_TIPO_PET;
-
-    } else if (consumirPalavra(&p, "PET")) {
-        entidadeTemp = COMANDO_PET;
-
-    } else {
-        return 0;
-    }
-
-    if (!consumirPalavra(&p, "ORDER") ||
-        !consumirPalavra(&p, "BY")) {
-        return 0;
-    }
-
-    if (entidadeTemp == COMANDO_TIPO_PET) {
-        if (!consumirPalavra(&p, "DESCRICAO") &&
-            !consumirPalavra(&p, "NOME")) {
-            return 0;
-        }
-    } else {
-        if (!consumirPalavra(&p, "NOME")) {
-            return 0;
-        }
-    }
-
-    if (!consumirCaractere(&p, ';')) {
-        return 0;
-    }
-
-    pularEspacos(&p);
-
-    if (*p != '\0') {
-        return 0;
-    }
-
-    *entidade = entidadeTemp;
-    return 1;
+    return validarSelectCompleto(
+        texto, entidade, &temWhere,
+        &codigo, &temOrderBy) &&
+        temOrderBy && !temWhere;
 }
-
 
 int validarInsertTipoPetComCampos(const char *texto,
                                  int *codigo,
@@ -1388,14 +1380,14 @@ int validarComandoSQL(const char *texto) {
             return validarDeleteSQL(
                 texto, &entidade, &codigo);
 
-        case OPERACAO_SELECT:
+        case OPERACAO_SELECT: {
 
-            return validarSelectSQL(
-                texto, &entidade,
-                &temWhere, &codigo) ||
+            int temOrderBy;
 
-                validarSelectOrderBySQL(
-                    texto, &entidade);
+            return validarSelectCompleto(
+                texto, &entidade, &temWhere,
+                &codigo, &temOrderBy);
+        }
 
         default:
             return 0;

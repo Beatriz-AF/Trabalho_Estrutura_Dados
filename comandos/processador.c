@@ -426,45 +426,68 @@ static int executarSelectOrdenadoSQL(
     TipoEntidade entidade,
     Pessoa *pessoas,
     TipoPet *tipos,
-    Pet *pets) {
+    Pet *pets,
+    int temWhere,
+    int codigo) {
 
     NoArvore *raiz = NULL;
 
     switch (entidade) {
 
         case COMANDO_PESSOA: {
+
             Pessoa *aux = pessoas;
 
             while (aux != NULL) {
-                inserirArvore(&raiz,
-                             aux->nome,
-                             aux->codigo);
+
+                if (!temWhere || aux->codigo == codigo) {
+
+                    inserirArvore(&raiz,
+                                 aux->nome,
+                                 aux->codigo);
+                }
+
                 aux = aux->prox;
             }
+
             break;
         }
 
         case COMANDO_TIPO_PET: {
+
             TipoPet *aux = tipos;
 
             while (aux != NULL) {
-                inserirArvore(&raiz,
-                             aux->descricao,
-                             aux->codigo);
+
+                if (!temWhere || aux->codigo == codigo) {
+
+                    inserirArvore(&raiz,
+                                 aux->descricao,
+                                 aux->codigo);
+                }
+
                 aux = aux->prox;
             }
+
             break;
         }
 
         case COMANDO_PET: {
+
             Pet *aux = pets;
 
             while (aux != NULL) {
-                inserirArvore(&raiz,
-                             aux->nome,
-                             aux->codigo);
+
+                if (!temWhere || aux->codigo == codigo) {
+
+                    inserirArvore(&raiz,
+                                 aux->nome,
+                                 aux->codigo);
+                }
+
                 aux = aux->prox;
             }
+
             break;
         }
 
@@ -473,7 +496,7 @@ static int executarSelectOrdenadoSQL(
     }
 
     if (raiz == NULL) {
-        printf("Nenhum registro cadastrado!\n");
+        printf("Nenhum registro encontrado!\n");
         return 1;
     }
 
@@ -489,27 +512,26 @@ int executarSelectSQL(const char *texto,
                      Pessoa *pessoas,
                      TipoPet *tipos,
                      Pet *pets) {
-    
-    TipoEntidade entidadeOrdenada;
-
-    if (validarSelectOrderBySQL(
-            texto, &entidadeOrdenada)) {
-
-        return executarSelectOrdenadoSQL(
-            entidadeOrdenada,
-            pessoas, tipos, pets);
-    }
-
 
     TipoEntidade entidade;
+
     int temWhere;
     int codigo;
+    int temOrderBy;
 
-    if (!validarSelectSQL(texto, &entidade,
-                          &temWhere, &codigo)) {
+    if (!validarSelectCompleto(
+            texto, &entidade, &temWhere,
+            &codigo, &temOrderBy)) {
 
         printf("Erro: comando SELECT invalido!\n");
         return 0;
+    }
+
+    if (temOrderBy) {
+
+        return executarSelectOrdenadoSQL(
+            entidade, pessoas, tipos, pets,
+            temWhere, codigo);
     }
 
     switch (entidade) {

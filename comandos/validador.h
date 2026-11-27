@@ -109,4 +109,11 @@ int validarUpdatePetParcial(
 
 int validarFilaGeral(Fila *fila);
 
+int validarSelectCompleto(
+    const char *texto,
+    TipoEntidade *entidade,
+    int *temWhere,
+    int *codigo,
+    int *temOrderBy);
+    
 #endif
