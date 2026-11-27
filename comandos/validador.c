@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <errno.h>
 #include "validador.h"
+#include "leitor.h"
 
 static int dataValida(const char *data);
 static void pularEspacos(const char **p) {
@@ -1294,4 +1295,162 @@ int validarUpdatePetParcial(
     strcpy(nome, nomeTemp);
 
     return 1;
+}
+
+int validarComandoSQL(const char *texto) {
+
+    TipoOperacao operacao;
+    TipoEntidade entidade;
+
+    if (!identificarComando(
+            texto, &operacao, &entidade)) {
+        return 0;
+    }
+
+    int codigo;
+    int codigoPes;
+    int codigoTipo;
+    int temWhere;
+
+    unsigned int campos;
+
+    char nome[100];
+    char descricao[100];
+    char fone[20];
+    char data[11];
+    char endereco[150];
+
+    switch (operacao) {
+
+        case OPERACAO_INSERT:
+
+            switch (entidade) {
+
+                case COMANDO_PESSOA:
+
+                    return validarInsertPessoa(
+                        texto, &codigo, nome,
+                        fone, data, endereco) ||
+
+                        validarInsertPessoaComCampos(
+                            texto, &codigo, nome,
+                            fone, data, endereco);
+
+                case COMANDO_TIPO_PET:
+
+                    return validarInsertTipoPet(
+                        texto, &codigo, descricao) ||
+
+                        validarInsertTipoPetComCampos(
+                            texto, &codigo, descricao);
+
+                case COMANDO_PET:
+
+                    return validarInsertPet(
+                        texto, &codigo, &codigoPes,
+                        nome, &codigoTipo) ||
+
+                        validarInsertPetComCampos(
+                            texto, &codigo, &codigoPes,
+                            nome, &codigoTipo);
+
+                default:
+                    return 0;
+            }
+
+        case OPERACAO_UPDATE:
+
+            switch (entidade) {
+
+                case COMANDO_PESSOA:
+
+                    return validarUpdatePessoaParcial(
+                        texto, &codigo, &campos,
+                        nome, fone, data, endereco);
+
+                case COMANDO_TIPO_PET:
+
+                    return validarUpdateTipoPet(
+                        texto, &codigo, descricao);
+
+                case COMANDO_PET:
+
+                    return validarUpdatePetParcial(
+                        texto, &codigo, &campos,
+                        &codigoPes, nome, &codigoTipo);
+
+                default:
+                    return 0;
+            }
+
+        case OPERACAO_DELETE:
+
+            return validarDeleteSQL(
+                texto, &entidade, &codigo);
+
+        case OPERACAO_SELECT:
+
+            return validarSelectSQL(
+                texto, &entidade,
+                &temWhere, &codigo) ||
+
+                validarSelectOrderBySQL(
+                    texto, &entidade);
+
+        default:
+            return 0;
+    }
+}
+
+int validarFilaGeral(Fila *fila) {
+
+    if (fila == NULL) {
+        return 0;
+    }
+
+    NoComando *atual = fila->inicio;
+    NoComando *anterior = NULL;
+
+    int validos = 0;
+    int invalidos = 0;
+
+    while (atual != NULL) {
+
+        if (!validarComandoSQL(atual->texto)) {
+
+            printf("\nComando invalido: %s\n",
+                   atual->texto);
+
+            NoComando *remover = atual;
+
+            atual = atual->prox;
+
+            if (anterior == NULL) {
+                fila->inicio = atual;
+            } else {
+                anterior->prox = atual;
+            }
+
+            if (remover == fila->fim) {
+                fila->fim = anterior;
+            }
+
+            free(remover);
+
+            invalidos++;
+
+        } else {
+
+            validos++;
+
+            anterior = atual;
+            atual = atual->prox;
+        }
+    }
+
+    printf("\n--- RESULTADO DA VALIDACAO ---\n");
+    printf("Comandos validos: %d\n", validos);
+    printf("Comandos invalidos: %d\n", invalidos);
+
+    return validos;
 }

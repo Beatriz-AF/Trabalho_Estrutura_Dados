@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+
 #include "arquivos.h"
 #include "../integridade/integridade.h"
 
@@ -29,9 +31,14 @@ int salvarPessoas(Pessoa *inicio, const char *nomeArquivo) {
     FILE *arquivo = fopen(nomeArquivo, "wb");
 
     if (arquivo == NULL) {
-        printf("Erro ao abrir arquivo de pessoas!\n");
-        return 0;
+
+    if (errno == ENOENT) {
+        return 1;
     }
+
+    printf("Erro ao abrir arquivo de pessoas!\n");
+    return 0;
+}
 
     Pessoa *aux = inicio;
 
@@ -212,9 +219,14 @@ int carregarTiposPet(TipoPet **inicio, const char *nomeArquivo) {
     FILE *arquivo = fopen(nomeArquivo, "rb");
 
     if (arquivo == NULL) {
-        printf("Erro ao abrir arquivo de tipos!\n");
-        return 0;
+
+    if (errno == ENOENT) {
+        return 1;
     }
+
+    printf("Erro ao abrir arquivo de tipos!\n");
+    return 0;
+}
 
     if (*inicio != NULL) {
         printf("Erro: lista de tipos nao esta vazia!\n");
@@ -264,9 +276,14 @@ int carregarPets(Pet **inicio,
     FILE *arquivo = fopen(nomeArquivo, "rb");
 
     if (arquivo == NULL) {
-        printf("Erro ao abrir arquivo de pets!\n");
-        return 0;
+
+    if (errno == ENOENT) {
+        return 1;
     }
+
+    printf("Erro ao abrir arquivo de pets!\n");
+    return 0;
+}
 
     if (*inicio != NULL) {
         printf("Erro: lista de pets nao esta vazia!\n");

@@ -79,13 +79,22 @@ int carregarScriptSQL(const char *nomeArquivo,
             return 0;
         }
 
-        // Identifica o comando e adiciona a fila.
-        if (!adicionarComandoSQL(filaGeral,
-                                comando,
-                                sequencia)) {
+        TipoOperacao operacao;
+        TipoEntidade entidade;
 
-            printf("Erro no comando da linha %d!\n",
-                   numeroLinha);
+        // Ignora comandos nao reconhecidos.
+        if (!identificarComando(comando,
+                            &operacao, &entidade)) {
+
+            printf("Comando invalido na linha %d!\n",
+                numeroLinha);
+            continue;
+        }
+
+        // Adiciona o comando a fila geral.
+        if (!enfileirar(filaGeral, comando,
+                        sequencia, entidade)) {
+
             fclose(arquivo);
             return 0;
         }

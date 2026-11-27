@@ -104,4 +104,9 @@ int validarUpdatePetParcial(
     int *codigoPes,
     char nome[100],
     int *codigoTipo);
+
+    int validarComandoSQL(const char *texto);
+
+int validarFilaGeral(Fila *fila);
+
 #endif

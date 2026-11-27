@@ -1,74 +1,148 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "pessoa/pessoa.h"
 #include "tipo_pet/tipo_pet.h"
 #include "pet/pet.h"
+
+#include "arquivos/arquivos.h"
+
+#include "comandos/fila.h"
+#include "comandos/script.h"
+#include "comandos/validador.h"
 #include "comandos/processador.h"
 
 int main(void) {
 
+    // Listas duplamente encadeadas.
     Pessoa *pessoas = NULL;
     TipoPet *tipos = NULL;
     Pet *pets = NULL;
 
-    printf("--- TESTE UPDATE PARCIAL PET ---\n");
+    // Filas de comandos.
+    Fila filaGeral;
+    Fila filaPessoas;
+    Fila filaTipos;
+    Fila filaPets;
 
-    inserirPessoa(&pessoas, 1, "Maria",
-                  "85999999999", "15/06/2000", "Rua A");
+    inicializarFila(&filaGeral);
+    inicializarFila(&filaPessoas);
+    inicializarFila(&filaTipos);
+    inicializarFila(&filaPets);
 
-    inserirPessoa(&pessoas, 2, "Joao",
-                  "85988888888", "20/08/2001", "Rua B");
+    int sucesso = 0;
+    int executados = 0;
+    int recusados = 0;
 
-    inserirTipoPet(&tipos, 1, "Cachorro");
-    inserirTipoPet(&tipos, 2, "Gato");
+    printf("\n--- SISTEMA DE CADASTRO DE PETS ---\n");
 
-    inserirPet(&pets, 10, 1, "Bob", 1);
+    // 1. Carregamento dos dados.
+    printf("\n--- CARREGANDO DADOS ---\n");
 
-    const char *testes[] = {
+    if (!carregarPessoas(&pessoas, "dados/pessoas.dat") ||
+        !carregarTiposPet(&tipos, "dados/tipos_pet.dat") ||
+        !carregarPets(&pets, pessoas, tipos, "dados/pets.dat")) {
 
-        "UPDATE pet SET nome = 'Max' WHERE codigo = 10;",
+        printf("Erro ao carregar os dados!\n");
+        goto finalizar;
+    }
 
-        "UPDATE pet SET codigo_pes = 2 WHERE codigo = 10;",
+    printf("Carregamento concluido!\n");
 
-        "UPDATE pet SET codigo_tipo = 2 WHERE codigo = 10;",
+    // 2. Leitura do arquivo SQL.
+    printf("\n--- LEITURA DOS COMANDOS ---\n");
 
-        "UPDATE pet SET nome = 'Luna', codigo_cli = 1 WHERE codigo = 10;",
+    if (!carregarScriptSQL("comandos.sql", &filaGeral)) {
 
-        "UPDATE pet SET codigo_pes = 999 WHERE codigo = 10;",
+        printf("Erro ao carregar o script SQL!\n");
+        goto finalizar;
+    }
 
-        "UPDATE pet SET codigo_tipo = 999 WHERE codigo = 10;",
+    // 3. Validacao da fila geral.
+    validarFilaGeral(&filaGeral);
 
-        "UPDATE pet SET nome = '' WHERE codigo = 10;",
+    // 4. Distribuicao dos comandos.
+    printf("\n--- DISTRIBUICAO DOS COMANDOS ---\n");
 
-        "UPDATE pet SET nome = 'Mel', nome = 'Bob' WHERE codigo = 10;",
+    if (!distribuirComandos(
+            &filaGeral,
+            &filaPessoas,
+            &filaTipos,
+            &filaPets)) {
 
-        "UPDATE pet SET nome = 'Mel' WHERE codigo = 999;"
-    };
+        printf("Erro ao distribuir comandos!\n");
+        goto finalizar;
+    }
 
-    int quantidade = sizeof(testes) / sizeof(testes[0]);
+    printf("Comandos distribuidos com sucesso!\n");
 
-    for (int i = 0; i < quantidade; i++) {
+    // 5. Execucao na ordem original.
+    printf("\n--- EXECUCAO DOS COMANDOS ---\n");
 
-        printf("\nTeste %d:\n", i + 1);
+    NoComando comando;
 
-        if (executarUpdatePetSQL(
-                testes[i], pets, pessoas, tipos)) {
+    while (retirarProximoComando(
+            &filaPessoas,
+            &filaTipos,
+            &filaPets,
+            &comando)) {
 
-            printf("UPDATE executado!\n");
+        printf("\nComando %d: %s\n",
+               comando.sequencia,
+               comando.texto);
+
+        if (executarComandoSQL(
+                comando.texto,
+                &pessoas,
+                &tipos,
+                &pets)) {
+
+            executados++;
 
         } else {
 
-            printf("UPDATE recusado!\n");
+            recusados++;
+            printf("Comando recusado!\n");
         }
     }
 
-    printf("\n--- RESULTADO FINAL ---\n");
+    // 6. Salvamento dos dados.
+    printf("\n--- SALVANDO DADOS ---\n");
 
-    listarPets(pets);
+    if (!salvarPessoas(pessoas, "dados/pessoas.dat") ||
+        !salvarTiposPet(tipos, "dados/tipos_pet.dat") ||
+        !salvarPets(pets, "dados/pets.dat")) {
+
+        printf("Erro ao salvar os dados!\n");
+        goto finalizar;
+    }
+
+    printf("Dados salvos com sucesso!\n");
+
+    // 7. Resumo da execucao.
+    printf("\n--- RESUMO DA EXECUCAO ---\n");
+    printf("Comandos executados: %d\n", executados);
+    printf("Comandos recusados na execucao: %d\n", recusados);
+
+    sucesso = 1;
+
+finalizar:
+
+    // 8. Liberacao da memoria.
+    liberarFila(&filaGeral);
+    liberarFila(&filaPessoas);
+    liberarFila(&filaTipos);
+    liberarFila(&filaPets);
 
     liberarPets(&pets);
     liberarPessoas(&pessoas);
     liberarTiposPet(&tipos);
 
-    return 0;
+    if (sucesso) {
+        printf("\nPrograma finalizado com sucesso!\n");
+    } else {
+        printf("\nPrograma encerrado com erros!\n");
+    }
+
+    return sucesso ? EXIT_SUCCESS : EXIT_FAILURE;
 }
