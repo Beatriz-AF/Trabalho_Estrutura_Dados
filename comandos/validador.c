@@ -370,7 +370,8 @@ int validarUpdateTipoPet(const char *texto,
     if (!consumirPalavra(&p, "UPDATE") ||
         !consumirPalavra(&p, "TIPO_PET") ||
         !consumirPalavra(&p, "SET") ||
-        !consumirPalavra(&p, "DESCRICAO") ||
+        (!consumirPalavra(&p, "DESCRICAO") &&
+            !consumirPalavra(&p, "NOME")) ||
         !consumirCaractere(&p, '=') ||
         !lerTexto(&p, descricaoTemp, sizeof(descricaoTemp)) ||
         !consumirPalavra(&p, "WHERE") ||
@@ -668,7 +669,8 @@ int validarInsertTipoPetComCampos(const char *texto,
         !consumirCaractere(&p, '(') ||
         !consumirPalavra(&p, "CODIGO") ||
         !consumirCaractere(&p, ',') ||
-        !consumirPalavra(&p, "DESCRICAO") ||
+        (!consumirPalavra(&p, "DESCRICAO") &&
+            !consumirPalavra(&p, "NOME")) ||
         !consumirCaractere(&p, ')') ||
 
         !consumirPalavra(&p, "VALUES") ||

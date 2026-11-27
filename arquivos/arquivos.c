@@ -58,9 +58,9 @@ int salvarPessoas(Pessoa *inicio, const char *nomeArquivo) {
                  sizeof(registro.data_nascimento),
                  "%s", aux->data_nascimento);
 
-        memcpy(registro.endereco,
-                aux->endereco,
-                sizeof(registro.endereco));
+        snprintf(registro.endereco,
+                sizeof(registro.endereco),
+                "%.149s", aux->endereco);
 
         if (fwrite(&registro, sizeof(registro), 1, arquivo) != 1) {
             printf("Erro ao salvar pessoa!\n");
@@ -163,10 +163,14 @@ int carregarPessoas(Pessoa **inicio, const char *nomeArquivo) {
 
     FILE *arquivo = fopen(nomeArquivo, "rb");
 
-    if (arquivo == NULL) {
+        if (arquivo == NULL) {
+            if (errno == ENOENT) {
+            return 1; 
+        } 
+
         printf("Erro ao abrir arquivo de pessoas!\n");
         return 0;
-    }
+    }   
 
     if (*inicio != NULL) {
         printf("Erro: lista de pessoas nao esta vazia!\n");
@@ -177,7 +181,11 @@ int carregarPessoas(Pessoa **inicio, const char *nomeArquivo) {
     Pessoa *temporaria = NULL;
     RegistroPessoa registro;
 
-    while (fread(&registro, sizeof(registro), 1, arquivo) == 1) {
+    size_t bytesLidos;
+
+    while ((bytesLidos = fread(
+            &registro, 1, sizeof(registro), arquivo))
+            == sizeof(registro)) {
 
         registro.nome[sizeof(registro.nome) - 1] = '\0';
         registro.fone[sizeof(registro.fone) - 1] = '\0';
@@ -197,7 +205,7 @@ int carregarPessoas(Pessoa **inicio, const char *nomeArquivo) {
         }
     }
 
-    if (ferror(arquivo)) {
+    if (ferror(arquivo) || bytesLidos != 0) {
         printf("Erro durante leitura de pessoas!\n");
         liberarPessoas(&temporaria);
         fclose(arquivo);
@@ -214,35 +222,38 @@ int carregarPessoas(Pessoa **inicio, const char *nomeArquivo) {
 }
 
 
-int carregarTiposPet(TipoPet **inicio, const char *nomeArquivo) {
+int carregarTiposPet(TipoPet **inicio,
+                     const char *nomeArquivo) {
+
+    if (inicio == NULL || *inicio != NULL) {
+        return 0;
+    }
 
     FILE *arquivo = fopen(nomeArquivo, "rb");
 
     if (arquivo == NULL) {
 
-    if (errno == ENOENT) {
-        return 1;
-    }
+        if (errno == ENOENT) {
+            return 1;
+        }
 
-    printf("Erro ao abrir arquivo de tipos!\n");
-    return 0;
-}
-
-    if (*inicio != NULL) {
-        printf("Erro: lista de tipos nao esta vazia!\n");
-        fclose(arquivo);
+        printf("Erro ao abrir arquivo de tipos!\n");
         return 0;
     }
 
     TipoPet *temporaria = NULL;
     RegistroTipoPet registro;
+    size_t bytesLidos;
 
-    while (fread(&registro, sizeof(registro), 1, arquivo) == 1) {
+    while ((bytesLidos = fread(
+                &registro, 1, sizeof(registro), arquivo))
+                == sizeof(registro)) {
 
         registro.descricao[
             sizeof(registro.descricao) - 1] = '\0';
 
-        if (!inserirTipoPet(&temporaria, registro.codigo,
+        if (!inserirTipoPet(&temporaria,
+                            registro.codigo,
                             registro.descricao)) {
 
             liberarTiposPet(&temporaria);
@@ -251,7 +262,7 @@ int carregarTiposPet(TipoPet **inicio, const char *nomeArquivo) {
         }
     }
 
-    if (ferror(arquivo)) {
+    if (ferror(arquivo) || bytesLidos != 0) {
         printf("Erro durante leitura de tipos!\n");
         liberarTiposPet(&temporaria);
         fclose(arquivo);
@@ -264,47 +275,50 @@ int carregarTiposPet(TipoPet **inicio, const char *nomeArquivo) {
     }
 
     *inicio = temporaria;
+
     return 1;
 }
-
 
 int carregarPets(Pet **inicio,
                  Pessoa *listaPessoas,
                  TipoPet *listaTipos,
                  const char *nomeArquivo) {
 
+    if (inicio == NULL || *inicio != NULL) {
+        return 0;
+    }
+
     FILE *arquivo = fopen(nomeArquivo, "rb");
 
     if (arquivo == NULL) {
 
-    if (errno == ENOENT) {
-        return 1;
-    }
+        if (errno == ENOENT) {
+            return 1;
+        }
 
-    printf("Erro ao abrir arquivo de pets!\n");
-    return 0;
-}
-
-    if (*inicio != NULL) {
-        printf("Erro: lista de pets nao esta vazia!\n");
-        fclose(arquivo);
+        printf("Erro ao abrir arquivo de pets!\n");
         return 0;
     }
 
     Pet *temporaria = NULL;
     RegistroPet registro;
+    size_t bytesLidos;
 
-    while (fread(&registro, sizeof(registro), 1, arquivo) == 1) {
+    while ((bytesLidos = fread(
+                &registro, 1, sizeof(registro), arquivo))
+                == sizeof(registro)) {
 
-        registro.nome[sizeof(registro.nome) - 1] = '\0';
+        registro.nome[
+            sizeof(registro.nome) - 1] = '\0';
 
-        if (!cadastrarPetValidado(&temporaria,
-                                 listaPessoas,
-                                 listaTipos,
-                                 registro.codigo,
-                                 registro.codigo_pes,
-                                 registro.nome,
-                                 registro.codigo_tipo)) {
+        if (!cadastrarPetValidado(
+                &temporaria,
+                listaPessoas,
+                listaTipos,
+                registro.codigo,
+                registro.codigo_pes,
+                registro.nome,
+                registro.codigo_tipo)) {
 
             liberarPets(&temporaria);
             fclose(arquivo);
@@ -312,7 +326,7 @@ int carregarPets(Pet **inicio,
         }
     }
 
-    if (ferror(arquivo)) {
+    if (ferror(arquivo) || bytesLidos != 0) {
         printf("Erro durante leitura de pets!\n");
         liberarPets(&temporaria);
         fclose(arquivo);
@@ -325,6 +339,6 @@ int carregarPets(Pet **inicio,
     }
 
     *inicio = temporaria;
+
     return 1;
 }
-

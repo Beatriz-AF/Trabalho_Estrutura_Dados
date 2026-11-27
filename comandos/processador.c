@@ -194,7 +194,7 @@ int executarUpdatePessoaSQL(const char *texto,
     char novoNome[100];
     char novoFone[20];
     char novaData[11];
-    char novoEndereco[150];
+    char novoEndereco[sizeof(pessoa->endereco)];
 
     snprintf(novoNome, sizeof(novoNome),
              "%s", pessoa->nome);
@@ -206,10 +206,9 @@ int executarUpdatePessoaSQL(const char *texto,
              "%s", pessoa->data_nascimento);
 
     
-    memcpy(novoEndereco, pessoa->endereco,
-        sizeof(novoEndereco));
-
-    novoEndereco[sizeof(novoEndereco) - 1] = '\0';
+    snprintf(novoEndereco,
+            sizeof(novoEndereco),
+             "%s", pessoa->endereco);
 
 
     // Substitui somente os campos informados.
