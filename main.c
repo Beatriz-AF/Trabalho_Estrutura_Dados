@@ -15,64 +15,71 @@
 
 int main() {
 
-printf("\n--- TESTE INSERT PESSOA COM CAMPOS ---\n");
+printf("\n--- TESTE UPDATE PARCIAL PESSOA ---\n");
 
-Pessoa *pessoasCamposTeste = NULL;
-TipoPet *tiposCamposTeste = NULL;
-Pet *petsCamposTeste = NULL;
+Pessoa *pessoasParcial = NULL;
+TipoPet *tiposParcial = NULL;
+Pet *petsParcial = NULL;
 
-const char *testes[] = {
+inserirPessoa(
+    &pessoasParcial, 1,
+    "Maria", "85999999999",
+    "10/05/2000", "Rua A");
 
-    // Valido: campos obrigatorios
-    "INSERT INTO pessoa(codigo, nome, data_nascimento) "
-    "VALUES(1, 'Maria', '10/05/2000');",
+const char *testesUpdate[] = {
 
-    // Valido: campos em outra ordem
-    "INSERT INTO pessoa(nome, endereco, codigo, "
-    "data_nascimento, fone) "
-    "VALUES('Joao', 'Rua B', 2, '15/08/2001', "
-    "'85988888888');",
+    // 1: Altera somente telefone.
+    "UPDATE pessoa SET fone = '85988888888' "
+    "WHERE codigo = 1;",
 
-    // Invalido: falta data de nascimento
-    "INSERT INTO pessoa(codigo, nome, fone) "
-    "VALUES(3, 'Ana', '85977777777');",
+    // 2: Altera nome e endereco.
+    "UPDATE pessoa SET endereco = 'Rua B', "
+    "nome = 'Maria Silva' WHERE codigo = 1;",
 
-    // Invalido: data inexistente
-    "INSERT INTO pessoa(codigo, nome, data_nascimento) "
-    "VALUES(4, 'Pedro', '31/02/2000');",
+    // 3: Altera data de nascimento.
+    "UPDATE pessoa SET data_nascimento = '15/06/2000' "
+    "WHERE codigo = 1;",
 
-    // Invalido: coluna repetida
-    "INSERT INTO pessoa(codigo, nome, nome, "
-    "data_nascimento) "
-    "VALUES(5, 'Lia', 'Ana', '10/10/2000');",
+    // 4: Invalido, data inexistente.
+    "UPDATE pessoa SET data_nascimento = '31/02/2000' "
+    "WHERE codigo = 1;",
 
-    // Invalido: codigo repetido
-    "INSERT INTO pessoa(codigo, nome, data_nascimento) "
-    "VALUES(1, 'Julia', '12/12/2001');"
+    // 5: Invalido, nome vazio.
+    "UPDATE pessoa SET nome = '' "
+    "WHERE codigo = 1;",
+
+    // 6: Invalido, campo repetido.
+    "UPDATE pessoa SET fone = '111', "
+    "fone = '222' WHERE codigo = 1;",
+
+    // 7: Invalido, pessoa inexistente.
+    "UPDATE pessoa SET nome = 'Ana' "
+    "WHERE codigo = 99;"
 };
 
-for (int i = 0; i < 6; i++) {
+for (int i = 0; i < 7; i++) {
 
     printf("\nTeste %d:\n", i + 1);
 
     if (executarComandoSQL(
-            testes[i],
-            &pessoasCamposTeste,
-            &tiposCamposTeste,
-            &petsCamposTeste)) {
+            testesUpdate[i],
+            &pessoasParcial,
+            &tiposParcial,
+            &petsParcial)) {
 
-        printf("INSERT executado!\n");
+        printf("UPDATE executado!\n");
+
     } else {
-        printf("INSERT recusado!\n");
+        printf("UPDATE recusado!\n");
     }
 }
 
-printf("\n--- PESSOAS CADASTRADAS ---\n");
-listarPessoas(pessoasCamposTeste);
+printf("\n--- RESULTADO FINAL ---\n");
+listarPessoas(pessoasParcial);
 
-liberarPets(&petsCamposTeste);
-liberarTiposPet(&tiposCamposTeste);
-liberarPessoas(&pessoasCamposTeste);
+liberarPets(&petsParcial);
+liberarTiposPet(&tiposParcial);
+liberarPessoas(&pessoasParcial);
 
 return  0;
 }

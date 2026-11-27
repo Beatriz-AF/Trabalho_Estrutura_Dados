@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <string.h>
+
 #include "processador.h"
 #include "leitor.h"
 #include "validador.h"
@@ -72,12 +74,18 @@ int executarInsertSQL(const char *texto,
             int codigoPes;
             int codigoTipo;
 
+            
             if (!validarInsertPet(texto, &codigo,
-                                 &codigoPes, nome,
-                                 &codigoTipo)) {
+                                &codigoPes, nome,
+                                &codigoTipo) &&
+                !validarInsertPetComCampos(
+                    texto, &codigo, &codigoPes,
+                    nome, &codigoTipo)) {
+
                 printf("Erro: INSERT pet invalido!\n");
                 return 0;
             }
+
 
             return cadastrarPetValidado(pets, *pessoas,
                                        *tipos, codigo,
@@ -150,6 +158,7 @@ int executarUpdateTipoPetSQL(const char *texto,
 
     return atualizarTipoPet(*tipos, codigo, descricao);
 }
+
 int executarUpdatePessoaSQL(const char *texto,
                            Pessoa *pessoas) {
 
@@ -158,21 +167,72 @@ int executarUpdatePessoaSQL(const char *texto,
     }
 
     int codigo;
+    unsigned int campos;
+
     char nome[100];
     char fone[20];
     char data[11];
     char endereco[150];
 
-    if (!validarUpdatePessoa(texto, &codigo,
-                             nome, fone,
-                             data, endereco)) {
-        printf("Erro: comando UPDATE pessoa invalido!\n");
+    if (!validarUpdatePessoaParcial(
+            texto, &codigo, &campos,
+            nome, fone, data, endereco)) {
+
+        printf("Erro: UPDATE pessoa invalido!\n");
         return 0;
     }
 
-    return atualizarPessoa(pessoas, codigo,
-                           nome, fone,
-                           data, endereco);
+    // Procura a pessoa que sera atualizada.
+    Pessoa *pessoa = buscarPessoa(pessoas, codigo);
+
+    if (pessoa == NULL) {
+        printf("Erro: pessoa nao encontrada!\n");
+        return 0;
+    }
+
+    // Guarda os valores atuais.
+    char novoNome[100];
+    char novoFone[20];
+    char novaData[11];
+    char novoEndereco[150];
+
+    snprintf(novoNome, sizeof(novoNome),
+             "%s", pessoa->nome);
+
+    snprintf(novoFone, sizeof(novoFone),
+             "%s", pessoa->fone);
+
+    snprintf(novaData, sizeof(novaData),
+             "%s", pessoa->data_nascimento);
+
+    
+    memcpy(novoEndereco, pessoa->endereco,
+        sizeof(novoEndereco));
+
+    novoEndereco[sizeof(novoEndereco) - 1] = '\0';
+
+
+    // Substitui somente os campos informados.
+    if (campos & CAMPO_PESSOA_NOME) {
+        strcpy(novoNome, nome);
+    }
+
+    if (campos & CAMPO_PESSOA_FONE) {
+        strcpy(novoFone, fone);
+    }
+
+    if (campos & CAMPO_PESSOA_DATA) {
+        strcpy(novaData, data);
+    }
+
+    if (campos & CAMPO_PESSOA_ENDERECO) {
+        strcpy(novoEndereco, endereco);
+    }
+
+    return atualizarPessoa(
+        pessoas, codigo,
+        novoNome, novoFone,
+        novaData, novoEndereco);
 }
 
 

@@ -896,3 +896,281 @@ int validarInsertPessoaComCampos(
     return 1;
 }
 
+
+int validarInsertPetComCampos(
+    const char *texto,
+    int *codigo,
+    int *codigoPes,
+    char nome[100],
+    int *codigoTipo) {
+
+    if (texto == NULL || codigo == NULL ||
+        codigoPes == NULL || nome == NULL ||
+        codigoTipo == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    // 0: codigo
+    // 1: codigo_pes
+    // 2: nome
+    // 3: codigo_tipo
+
+    int colunas[4];
+    int presentes[4] = {0};
+    int quantidade = 0;
+
+    int codigoTemp = 0;
+    int codigoPesTemp = 0;
+    int codigoTipoTemp = 0;
+    char nomeTemp[100] = "";
+
+    if (!consumirPalavra(&p, "INSERT") ||
+        !consumirPalavra(&p, "INTO") ||
+        !consumirPalavra(&p, "PET") ||
+        !consumirCaractere(&p, '(')) {
+        return 0;
+    }
+
+    // Identifica as colunas informadas.
+    while (1) {
+
+        int campo = -1;
+
+        if (consumirPalavra(&p, "CODIGO")) {
+            campo = 0;
+
+        } else if (consumirPalavra(&p, "CODIGO_PES") ||
+                   consumirPalavra(&p, "CODIGO_CLI")) {
+            campo = 1;
+
+        } else if (consumirPalavra(&p, "NOME")) {
+            campo = 2;
+
+        } else if (consumirPalavra(&p, "CODIGO_TIPO") ||
+                   consumirPalavra(&p, "CODIGO_TIPO_PET")) {
+            campo = 3;
+        }
+
+        if (campo == -1 ||
+            presentes[campo] ||
+            quantidade >= 4) {
+            return 0;
+        }
+
+        presentes[campo] = 1;
+        colunas[quantidade++] = campo;
+
+        if (consumirCaractere(&p, ')')) {
+            break;
+        }
+
+        if (!consumirCaractere(&p, ',')) {
+            return 0;
+        }
+    }
+
+    // Todos os campos sao obrigatorios.
+    if (quantidade != 4 ||
+        !presentes[0] || !presentes[1] ||
+        !presentes[2] || !presentes[3]) {
+        return 0;
+    }
+
+    if (!consumirPalavra(&p, "VALUES") ||
+        !consumirCaractere(&p, '(')) {
+        return 0;
+    }
+
+    // Le os valores na ordem das colunas.
+    for (int i = 0; i < quantidade; i++) {
+
+        int valido = 0;
+
+        switch (colunas[i]) {
+
+            case 0:
+                valido = lerCodigo(&p, &codigoTemp);
+                break;
+
+            case 1:
+                valido = lerCodigo(&p, &codigoPesTemp);
+                break;
+
+            case 2:
+                valido = lerTexto(
+                    &p, nomeTemp, sizeof(nomeTemp));
+                break;
+
+            case 3:
+                valido = lerCodigo(&p, &codigoTipoTemp);
+                break;
+        }
+
+        if (!valido) {
+            return 0;
+        }
+
+        if (i < quantidade - 1 &&
+            !consumirCaractere(&p, ',')) {
+            return 0;
+        }
+    }
+
+    if (!consumirCaractere(&p, ')') ||
+        !consumirCaractere(&p, ';')) {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0' || nomeTemp[0] == '\0') {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+    *codigoPes = codigoPesTemp;
+    *codigoTipo = codigoTipoTemp;
+
+    strcpy(nome, nomeTemp);
+
+    return 1;
+}
+
+
+int validarUpdatePessoaParcial(
+    const char *texto,
+    int *codigo,
+    unsigned int *campos,
+    char nome[100],
+    char fone[20],
+    char data[11],
+    char endereco[150]) {
+
+    if (texto == NULL || codigo == NULL ||
+        campos == NULL || nome == NULL ||
+        fone == NULL || data == NULL ||
+        endereco == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    unsigned int camposTemp = 0;
+    int codigoTemp;
+
+    char nomeTemp[100] = "";
+    char foneTemp[20] = "";
+    char dataTemp[11] = "";
+    char enderecoTemp[150] = "";
+
+    if (!consumirPalavra(&p, "UPDATE") ||
+        !consumirPalavra(&p, "PESSOA") ||
+        !consumirPalavra(&p, "SET")) {
+        return 0;
+    }
+
+    while (1) {
+
+        unsigned int campo = 0;
+        int valido = 0;
+
+        if (consumirPalavra(&p, "NOME")) {
+            campo = CAMPO_PESSOA_NOME;
+
+        } else if (consumirPalavra(&p, "FONE")) {
+            campo = CAMPO_PESSOA_FONE;
+
+        } else if (consumirPalavra(&p, "DATA_NASCIMENTO")) {
+            campo = CAMPO_PESSOA_DATA;
+
+        } else if (consumirPalavra(&p, "ENDERECO")) {
+            campo = CAMPO_PESSOA_ENDERECO;
+
+        } else {
+            return 0;
+        }
+
+        // Impede atualizar o mesmo campo duas vezes.
+        if (camposTemp & campo) {
+            return 0;
+        }
+
+        if (!consumirCaractere(&p, '=')) {
+            return 0;
+        }
+
+        switch (campo) {
+
+            case CAMPO_PESSOA_NOME:
+                valido = lerTexto(
+                    &p, nomeTemp, sizeof(nomeTemp));
+                break;
+
+            case CAMPO_PESSOA_FONE:
+                valido = lerTexto(
+                    &p, foneTemp, sizeof(foneTemp));
+                break;
+
+            case CAMPO_PESSOA_DATA:
+                valido = lerTexto(
+                    &p, dataTemp, sizeof(dataTemp));
+                break;
+
+            case CAMPO_PESSOA_ENDERECO:
+                valido = lerTexto(
+                    &p, enderecoTemp, sizeof(enderecoTemp));
+                break;
+        }
+
+        if (!valido) {
+            return 0;
+        }
+
+        camposTemp |= campo;
+
+        // Se houver virgula, le outro campo.
+        if (consumirCaractere(&p, ',')) {
+            continue;
+        }
+
+        break;
+    }
+
+    if (!consumirPalavra(&p, "WHERE") ||
+        !consumirPalavra(&p, "CODIGO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoTemp) ||
+        !consumirCaractere(&p, ';')) {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0') {
+        return 0;
+    }
+
+    // Nome nao pode ser vazio.
+    if ((camposTemp & CAMPO_PESSOA_NOME) &&
+        nomeTemp[0] == '\0') {
+        return 0;
+    }
+
+    // Se a data foi alterada, precisa ser valida.
+    if ((camposTemp & CAMPO_PESSOA_DATA) &&
+        !dataValida(dataTemp)) {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+    *campos = camposTemp;
+
+    strcpy(nome, nomeTemp);
+    strcpy(fone, foneTemp);
+    strcpy(data, dataTemp);
+    strcpy(endereco, enderecoTemp);
+
+    return 1;
+}

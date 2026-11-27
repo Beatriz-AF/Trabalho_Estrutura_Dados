@@ -70,4 +70,27 @@ int validarInsertPessoaComCampos(
     char data[11],
     char endereco[150]);
 
+
+int validarInsertPetComCampos(
+    const char *texto,
+    int *codigo,
+    int *codigoPes,
+    char nome[100],
+    int *codigoTipo);
+
+
+#define CAMPO_PESSOA_NOME     1u
+#define CAMPO_PESSOA_FONE     2u
+#define CAMPO_PESSOA_DATA     4u
+#define CAMPO_PESSOA_ENDERECO 8u
+
+int validarUpdatePessoaParcial(
+    const char *texto,
+    int *codigo,
+    unsigned int *campos,
+    char nome[100],
+    char fone[20],
+    char data[11],
+    char endereco[150]);
+
 #endif
