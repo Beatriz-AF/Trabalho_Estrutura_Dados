@@ -41,3 +41,19 @@ int validarUpdatePessoa(const char *texto,
                         char endereco[150]);
 
 #endif
+
+
+int validarUpdatePet(const char *texto,
+                     int *codigo,
+                     int *codigoPes,
+                     char nome[100],
+                     int *codigoTipo);
+
+
+int validarSelectSQL(const char *texto,
+                     TipoEntidade *entidade,
+                     int *temWhere,
+                     int *codigo);
+
+int validarSelectOrderBySQL(const char *texto,
+                            TipoEntidade *entidade);

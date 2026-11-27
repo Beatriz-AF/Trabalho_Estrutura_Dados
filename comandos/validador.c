@@ -465,3 +465,190 @@ int validarUpdatePessoa(const char *texto,
 }
 
 
+int validarUpdatePet(const char *texto,
+                     int *codigo,
+                     int *codigoPes,
+                     char nome[100],
+                     int *codigoTipo) {
+
+    if (texto == NULL || codigo == NULL ||
+        codigoPes == NULL || nome == NULL ||
+        codigoTipo == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    int codigoTemp;
+    int codigoPesTemp;
+    int codigoTipoTemp;
+    char nomeTemp[100];
+
+    if (!consumirPalavra(&p, "UPDATE") ||
+        !consumirPalavra(&p, "PET") ||
+        !consumirPalavra(&p, "SET") ||
+
+        !consumirPalavra(&p, "CODIGO_PES") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoPesTemp) ||
+        !consumirCaractere(&p, ',') ||
+
+        !consumirPalavra(&p, "NOME") ||
+        !consumirCaractere(&p, '=') ||
+        !lerTexto(&p, nomeTemp, sizeof(nomeTemp)) ||
+        !consumirCaractere(&p, ',') ||
+
+        !consumirPalavra(&p, "CODIGO_TIPO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoTipoTemp) ||
+
+        !consumirPalavra(&p, "WHERE") ||
+        !consumirPalavra(&p, "CODIGO") ||
+        !consumirCaractere(&p, '=') ||
+        !lerCodigo(&p, &codigoTemp) ||
+        !consumirCaractere(&p, ';')) {
+
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0' || nomeTemp[0] == '\0') {
+        return 0;
+    }
+
+    *codigo = codigoTemp;
+    *codigoPes = codigoPesTemp;
+    *codigoTipo = codigoTipoTemp;
+
+    strcpy(nome, nomeTemp);
+
+    return 1;
+}
+
+
+int validarSelectSQL(const char *texto,
+                     TipoEntidade *entidade,
+                     int *temWhere,
+                     int *codigo) {
+
+    if (texto == NULL || entidade == NULL ||
+        temWhere == NULL || codigo == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+
+    TipoEntidade entidadeTemp;
+    int temWhereTemp = 0;
+    int codigoTemp = 0;
+
+    if (!consumirPalavra(&p, "SELECT") ||
+        !consumirCaractere(&p, '*') ||
+        !consumirPalavra(&p, "FROM")) {
+        return 0;
+    }
+
+    if (consumirPalavra(&p, "PESSOA")) {
+        entidadeTemp = COMANDO_PESSOA;
+
+    } else if (consumirPalavra(&p, "TIPO_PET")) {
+        entidadeTemp = COMANDO_TIPO_PET;
+
+    } else if (consumirPalavra(&p, "PET")) {
+        entidadeTemp = COMANDO_PET;
+
+    } else {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (consumirPalavra(&p, "WHERE")) {
+
+        temWhereTemp = 1;
+
+        if (!consumirPalavra(&p, "CODIGO") ||
+            !consumirCaractere(&p, '=') ||
+            !lerCodigo(&p, &codigoTemp)) {
+            return 0;
+        }
+    }
+
+    if (!consumirCaractere(&p, ';')) {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0') {
+        return 0;
+    }
+
+    *entidade = entidadeTemp;
+    *temWhere = temWhereTemp;
+    *codigo = codigoTemp;
+
+    return 1;
+}
+
+
+int validarSelectOrderBySQL(const char *texto,
+                            TipoEntidade *entidade) {
+
+    if (texto == NULL || entidade == NULL) {
+        return 0;
+    }
+
+    const char *p = texto;
+    TipoEntidade entidadeTemp;
+
+    if (!consumirPalavra(&p, "SELECT") ||
+        !consumirCaractere(&p, '*') ||
+        !consumirPalavra(&p, "FROM")) {
+        return 0;
+    }
+
+    if (consumirPalavra(&p, "PESSOA")) {
+        entidadeTemp = COMANDO_PESSOA;
+
+    } else if (consumirPalavra(&p, "TIPO_PET")) {
+        entidadeTemp = COMANDO_TIPO_PET;
+
+    } else if (consumirPalavra(&p, "PET")) {
+        entidadeTemp = COMANDO_PET;
+
+    } else {
+        return 0;
+    }
+
+    if (!consumirPalavra(&p, "ORDER") ||
+        !consumirPalavra(&p, "BY")) {
+        return 0;
+    }
+
+    if (entidadeTemp == COMANDO_TIPO_PET) {
+        if (!consumirPalavra(&p, "DESCRICAO") &&
+            !consumirPalavra(&p, "NOME")) {
+            return 0;
+        }
+    } else {
+        if (!consumirPalavra(&p, "NOME")) {
+            return 0;
+        }
+    }
+
+    if (!consumirCaractere(&p, ';')) {
+        return 0;
+    }
+
+    pularEspacos(&p);
+
+    if (*p != '\0') {
+        return 0;
+    }
+
+    *entidade = entidadeTemp;
+    return 1;
+}
+
